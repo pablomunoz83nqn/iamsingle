@@ -12,9 +12,15 @@ class StoreView extends StatefulWidget {
 }
 
 class _StoreViewState extends State<StoreView> {
-  CRUDmethods crudMethods = CRUDmethods();
+  late final HomeViewController crudMethods;
   CollectionReference userPostSnapshot =
       FirebaseFirestore.instance.collection('posts');
+
+  @override
+  void initState() {
+    crudMethods = HomeViewController(context);
+    super.initState();
+  }
 
   Widget? userPostsList() {
     return StreamBuilder<QuerySnapshot>(

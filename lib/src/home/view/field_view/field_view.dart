@@ -12,9 +12,15 @@ class FieldView extends StatefulWidget {
 }
 
 class _FieldViewState extends State<FieldView> {
-  CRUDmethods crudMethods = CRUDmethods();
+  late final HomeViewController crudMethods;
   CollectionReference userPostSnapshot =
       FirebaseFirestore.instance.collection('posts');
+
+  @override
+  void initState() {
+    crudMethods = HomeViewController(context);
+    super.initState();
+  }
 
   Widget? userPostsList() {
     return StreamBuilder<QuerySnapshot>(
@@ -39,15 +45,15 @@ class _FieldViewState extends State<FieldView> {
                   itemCount: querySnapshot.size,
                   itemBuilder: (context, index) {
                     return PostTile(
-                      //.where('rescued', isEqualTo: false).get()
                       imgURL: querySnapshot.docs[index].get('imgURL'),
                       caption: querySnapshot.docs[index].get('caption'),
                       location: querySnapshot.docs[index].get('location'),
                     );
-                  })
+                  },
+                )
               : Container(
                   alignment: Alignment.center,
-                  child: const CircularProgressIndicator(),
+                  child: const Text('No hay registros guardados'),
                 ),
         );
       },
@@ -80,7 +86,7 @@ class _FieldViewState extends State<FieldView> {
         ),
       ),
       floatingActionButton: Container(
-        padding: EdgeInsets.symmetric(vertical: 25.0),
+        padding: const EdgeInsets.symmetric(vertical: 25.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -89,8 +95,8 @@ class _FieldViewState extends State<FieldView> {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => CreateImagePost()));
               },
-              icon: Icon(Icons.add_a_photo),
-              label: Text("Upload your photo"),
+              icon: const Icon(Icons.add_a_photo),
+              label: const Text("Nuevo registro"),
               backgroundColor: Colors.red,
             ),
           ],

@@ -52,5 +52,7 @@
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Some Description</string>
 
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 </dict>
 </plist>
