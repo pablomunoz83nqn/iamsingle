@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:novedades_de_campo/src/home/model/users_model.dart';
 
-class FirestoreService {
+class FirestoreServiceUsers {
   final CollectionReference usersCollection =
       FirebaseFirestore.instance.collection('users');
 

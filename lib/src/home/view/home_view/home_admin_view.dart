@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:novedades_de_campo/src/home/controller/field_controller.dart';
-import 'package:novedades_de_campo/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
-import 'package:novedades_de_campo/src/home/controller/locaciones_controller.dart';
+import 'package:novedades_de_campo/src/home/controller/posts_bloc/posts_bloc.dart';
 
 import 'package:novedades_de_campo/src/home/view/field_view/create_image.dart';
-import 'package:novedades_de_campo/src/home/view/home_view/locaciones_screen.dart';
-import 'package:novedades_de_campo/src/home/view/home_view/search_bar.dart';
+import 'package:novedades_de_campo/src/home/view/home_view/search_screen.dart';
+import 'package:novedades_de_campo/src/home/view/maps_views/maps_controller.dart';
 
 import 'package:novedades_de_campo/src/home/view/maps_views/maps_main_view.dart';
 
@@ -23,80 +22,102 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late final HomeViewController controller;
+  late final MapsController mapController;
+  String selectedYacimiento = "";
 
   @override
   void initState() {
     super.initState();
     controller = HomeViewController(context);
+    mapController = MapsController(context);
+    BlocProvider.of<PostsBloc>(context).add(LoadPosts(""));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: Icon(
-          Icons.menu,
-          color: Colors.blueGrey[800],
-        ),
-        backgroundColor: Colors.greenAccent,
-        title: Center(
-          child: Text(
-            'Logistica de campo',
-            style: TextStyle(color: Colors.blueGrey[800], fontSize: 24),
-          ),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(height: 300, child: LocacionesView()),
-              const SizedBox(height: 200, child: SearchElementBar()),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'Resumen de campo',
-                    style: TextStyle(
-                        color: Colors.blueGrey[600],
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
+    return BlocBuilder<PostsBloc, PostsState>(builder: (context, state) {
+      if (state is PostsLoading) {
+        return const Center(child: CircularProgressIndicator());
+      } else if (state is PostsLoaded) {
+        int numEnCampo = 0;
+        int numRecuperados = 0;
+
+        for (var item in state.posts) {
+          if (!item.rescued) {
+            numEnCampo++;
+          } else {
+            numRecuperados++;
+          }
+          ;
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            leading: Icon(
+              Icons.menu,
+              color: Colors.blueGrey[800],
+            ),
+            backgroundColor: Colors.greenAccent,
+            title: Center(
+              child: Text(
+                'Logistica de campo',
+                style: TextStyle(color: Colors.blueGrey[800], fontSize: 24),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+            ),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SingleChildScrollView(
+              child: Column(
                 children: [
-                  materialCard(
-                      context,
-                      '/field',
-                      controller.getOnfieldElements(),
-                      'Lotes en campo',
-                      'assets/lottie/campo.json'),
-                  materialCard(
-                      context,
-                      '/store',
-                      controller.getResucedElements(),
-                      'Lotes recuperados',
-                      'assets/lottie/deposito.json'),
+                  SearchScreen(
+                    selectedYacimiento: selectedYacimiento,
+                    onApply: (String name) {
+                      selectedYacimiento = name;
+                      BlocProvider.of<PostsBloc>(context).add(LoadPosts(name));
+                    },
+                  ),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'Resumen de campo',
+                        style: TextStyle(
+                            color: Colors.blueGrey[600],
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      materialCard(context, '/field', numEnCampo,
+                          'Lotes en campo', 'assets/lottie/campo.json'),
+                      materialCard(context, '/store', numRecuperados,
+                          'Lotes recuperados', 'assets/lottie/deposito.json'),
+                    ],
+                  ),
+                  mapWidget(context),
                 ],
               ),
-              mapWidget(context),
-            ],
+            ),
           ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => CreateImagePost()));
-        },
-        tooltip: 'Agregar nuevo',
-        child: const Icon(Icons.add),
-      ),
-    );
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerDocked,
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => CreateImagePost()));
+            },
+            tooltip: 'Agregar nuevo',
+            child: const Icon(Icons.add),
+          ),
+        );
+      } else {
+        return Text("Nada cargado");
+      }
+    });
   }
 
   Widget mapWidget(BuildContext context) {
@@ -108,18 +129,14 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         child: SizedBox(
           height: MediaQuery.of(context).size.height / 2,
-          child: const MapsPage(),
+          child: MapsPage(yacimiento: selectedYacimiento),
         ),
       ),
     );
   }
 
-  Widget materialCard(
-      BuildContext context,
-      String ontap,
-      Future<List<DocumentSnapshot<Object?>>> future,
-      String type,
-      String lottie) {
+  Widget materialCard(BuildContext context, String ontap, int numItems,
+      String type, String lottie) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, ontap),
       child: ClipRRect(
@@ -178,22 +195,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         ],
                       ),
                     ),
-                    FutureBuilder(
-                      future: future,
-                      builder:
-                          (_, AsyncSnapshot<List<DocumentSnapshot>> snapshot) {
-                        return snapshot.connectionState ==
-                                ConnectionState.waiting
-                            ? const CircularProgressIndicator()
-                            : Text(
-                                snapshot.data!.length.toString(),
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.bold),
-                              );
-                      },
-                    ),
+                    Text(
+                      numItems.toString(),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold),
+                    )
                   ],
                 ),
               ],

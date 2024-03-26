@@ -2,8 +2,8 @@ class Posts {
   String id;
   String imgURL;
   String name;
-  double lat;
-  double long;
+  String lat;
+  String long;
   String description;
   String uploadedBy;
   String category;
@@ -11,6 +11,7 @@ class Posts {
   String field;
   String date;
   String modifiedBy;
+  bool rescued;
 
   Posts({
     required this.imgURL,
@@ -25,14 +26,15 @@ class Posts {
     required this.field,
     required this.date,
     required this.modifiedBy,
+    required this.rescued,
   });
 
   Posts copyWith({
     String? id,
     String? imgURL,
     String? name,
-    double? lat,
-    double? long,
+    String? lat,
+    String? long,
     String? description,
     String? uploadedBy,
     String? category,
@@ -40,9 +42,11 @@ class Posts {
     String? field,
     String? date,
     String? modifiedBy,
+    bool? rescued,
   }) {
     return Posts(
       id: id ?? this.id,
+      rescued: rescued ?? this.rescued,
       imgURL: imgURL ?? this.imgURL,
       name: name ?? this.name,
       lat: lat ?? this.lat,

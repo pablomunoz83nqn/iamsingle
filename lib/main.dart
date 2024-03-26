@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:novedades_de_campo/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
 import 'package:novedades_de_campo/src/home/controller/locaciones_controller.dart';
+import 'package:novedades_de_campo/src/home/controller/posts_bloc/posts_bloc.dart';
+import 'package:novedades_de_campo/src/home/controller/posts_controller.dart';
+import 'package:novedades_de_campo/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
+import 'package:novedades_de_campo/src/home/controller/yacimiento_controller.dart';
 import 'package:novedades_de_campo/src/home/view/field_view/field_view.dart';
 import 'package:novedades_de_campo/src/home/view/field_view/store_view.dart';
 // Import the firebase_core plugin
@@ -13,12 +17,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(MultiBlocProvider(providers: [
-    //BlocProvider(
-    //  create: (context) =>   AuthenticationBloc(AuthenticationRepositoryImpl())
-    //   ..add(AuthenticationStarted()),
-    // ),
-    BlocProvider<LocacionesBloc>(
-      create: (context) => LocacionesBloc(FirestoreService()),
+    BlocProvider<PostsBloc>(
+      create: (context) => PostsBloc(FirestoreServicePosts()),
+    ),
+    BlocProvider<YacimientoBloc>(
+      create: (context) => YacimientoBloc(FirestoreServiceYacimiento()),
+    ),
+    BlocProvider<Yacimiento>(
+      create: (context) => Yacimiento(FirestoreServiceLocaciones()),
     ),
   ], child: const MyApp()));
 }

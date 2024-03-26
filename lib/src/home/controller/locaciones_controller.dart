@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:novedades_de_campo/src/home/model/locaciones_model.dart';
 
-class FirestoreService {
+class FirestoreServiceLocaciones {
   final CollectionReference _locacionesCollection =
       FirebaseFirestore.instance.collection('locaciones');
 

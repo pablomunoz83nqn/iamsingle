@@ -13,19 +13,18 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
-    BlocProvider.of<LocacionesBloc>(context).add(LoadLocaciones());
+    BlocProvider.of<Yacimiento>(context).add(LoadLocaciones());
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final LocacionesBloc _locacionesBloc =
-        BlocProvider.of<LocacionesBloc>(context);
+    final Yacimiento _locacionesBloc = BlocProvider.of<Yacimiento>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('Firestore'),
       ),
-      body: BlocBuilder<LocacionesBloc, LocacionesState>(
+      body: BlocBuilder<Yacimiento, LocacionesState>(
         builder: (context, state) {
           if (state is LocacionesLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -98,7 +97,7 @@ class _HomeViewState extends State<HomeView> {
                   name: _titleController.text,
                   yacimiento: "Loma campana",
                 );
-                BlocProvider.of<LocacionesBloc>(context).add(AddLocacion(todo));
+                BlocProvider.of<Yacimiento>(context).add(AddLocacion(todo));
                 Navigator.pop(context);
               },
             ),

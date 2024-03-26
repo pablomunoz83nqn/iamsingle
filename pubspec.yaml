@@ -28,6 +28,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   cloud_firestore: ^4.8.5
+  drop_down_search_field: ^1.0.4
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.3

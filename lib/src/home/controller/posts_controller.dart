@@ -2,12 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:novedades_de_campo/src/home/model/posts_model.dart';
 
-class FirestoreService {
+class FirestoreServicePosts {
   final CollectionReference _postsCollection =
       FirebaseFirestore.instance.collection('posts');
 
-  Stream<List<Posts>> getPosts() {
-    return _postsCollection.snapshots().map((snapshot) {
+  Stream<List<Posts>> getPosts(String name) {
+    return (name == ""
+            ? _postsCollection
+            : _postsCollection.where('name', isEqualTo: name))
+        .snapshots()
+        .map((snapshot) {
       return snapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return Posts(
@@ -23,6 +27,7 @@ class FirestoreService {
           field: data['field'],
           date: data['date'],
           modifiedBy: data['modifiedBy'],
+          rescued: data['rescued'],
         );
       }).toList();
     });
