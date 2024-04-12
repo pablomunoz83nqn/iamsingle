@@ -161,10 +161,7 @@ class _MapsPageState extends State<MapsPage> {
               opacity: _isMapLoading ? 0 : 1,
               child: GoogleMap(
                 mapToolbarEnabled: true,
-                initialCameraPosition: CameraPosition(
-                  target: const LatLng(-38.951813, -68.064855),
-                  zoom: _currentZoom,
-                ),
+                initialCameraPosition: cameraPosition(),
                 markers: _markers,
                 onMapCreated: (controller) {
                   _onMapCreated(controller);
@@ -209,5 +206,24 @@ class _MapsPageState extends State<MapsPage> {
         return Container();
       }
     });
+  }
+
+  CameraPosition cameraPosition() {
+    double promLat = 0.0;
+
+    double promLong = 0.0;
+
+    if (markerLocations.isNotEmpty) {
+      for (var lat in markerLocations) {
+        promLat = promLat + lat.latitude;
+        promLong = promLong + lat.longitude;
+      }
+      promLat = promLat / markerLocations.length;
+      promLong = promLong / markerLocations.length;
+    }
+    return CameraPosition(
+      target: LatLng(promLat, promLong),
+      zoom: _currentZoom,
+    );
   }
 }

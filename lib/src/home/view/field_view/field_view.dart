@@ -1,63 +1,71 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:novedades_de_campo/src/home/controller/field_controller.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:novedades_de_campo/src/home/controller/posts_bloc/posts_bloc.dart';
 import 'package:novedades_de_campo/src/home/view/field_view/create_image.dart';
 import 'package:novedades_de_campo/src/home/view/field_view/post_file_widget.dart';
 
 class FieldView extends StatefulWidget {
-  const FieldView({Key? key}) : super(key: key);
+  String yacimiento;
+  FieldView({Key? key, required this.yacimiento}) : super(key: key);
 
   @override
   _FieldViewState createState() => _FieldViewState();
 }
 
 class _FieldViewState extends State<FieldView> {
-  late final HomeViewController crudMethods;
-  CollectionReference userPostSnapshot =
-      FirebaseFirestore.instance.collection('posts');
-
   @override
   void initState() {
-    crudMethods = HomeViewController(context);
     super.initState();
+    BlocProvider.of<PostsBloc>(context).add(LoadPosts(widget.yacimiento));
   }
 
   Widget? userPostsList() {
-    return StreamBuilder<QuerySnapshot>(
-//Filtere in collection only false rescued elements
-      stream: userPostSnapshot.where('rescued', isEqualTo: false).snapshots(),
-      builder: (context, stream) {
-        if (stream.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return BlocBuilder<PostsBloc, PostsState>(builder: (context, state) {
+      if (state is PostsLoading) {
+        return const Center(child: CircularProgressIndicator());
+      } else if (state is PostsLoaded) {
+//Seteo un if para que no se repitan los posts
+        /* if (originalPostsList != state.posts) {
+          originalPostsList.clear();
+          markerLocations.clear();
+          originalPostsList = state.posts;
 
-        if (stream.hasError) {
-          return Center(child: Text(stream.error.toString()));
-        }
+          for (var element in originalPostsList) {
+            markerLocations.add(
+              LatLng(
+                double.parse(element.lat),
+                double.parse(element.long),
+              ),
+            );
+          }
+        } */
 
-        QuerySnapshot? querySnapshot = stream.data;
-
-        return Container(
-          child: querySnapshot != null
-              ? ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  shrinkWrap: true,
-                  itemCount: querySnapshot.size,
-                  itemBuilder: (context, index) {
-                    return PostTile(
-                      imgURL: querySnapshot.docs[index].get('imgURL'),
-                      caption: querySnapshot.docs[index].get('caption'),
-                      location: querySnapshot.docs[index].get('location'),
-                    );
-                  },
-                )
-              : Container(
-                  alignment: Alignment.center,
-                  child: const Text('No hay registros guardados'),
-                ),
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          shrinkWrap: true,
+          itemCount: state.posts.length,
+          itemBuilder: (context, index) {
+            return PostTile(
+              imgURL: state.posts[index].imgURL,
+              description: state.posts[index].description,
+              location: state.posts[index].location,
+              id: '',
+              name: '',
+              lat: state.posts[index].lat,
+              long: state.posts[index].long,
+              uploadedBy: '',
+              category: state.posts[index].category,
+              field: '',
+              date: '',
+              modifiedBy: '',
+              rescued: state.posts[index].rescued,
+            );
+          },
         );
-      },
-    );
+      } else {
+        return Text("Nada cargado");
+      }
+    });
   }
 
   @override
@@ -66,9 +74,9 @@ class _FieldViewState extends State<FieldView> {
       backgroundColor: Colors.orangeAccent[100],
       appBar: AppBar(
         backgroundColor: Colors.orange,
-        title: Row(
+        title: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'Materiales',
               style: TextStyle(

@@ -48,7 +48,6 @@ class _MyHomePageState extends State<MyHomePage> {
           } else {
             numRecuperados++;
           }
-          ;
         }
 
         return Scaffold(
@@ -115,7 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         );
       } else {
-        return Text("Nada cargado");
+        return Text("Error en carga de base de datos");
       }
     });
   }
@@ -138,7 +137,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget materialCard(BuildContext context, String ontap, int numItems,
       String type, String lottie) {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, ontap),
+      onTap: () =>
+          Navigator.pushNamed(context, ontap, arguments: selectedYacimiento),
       child: ClipRRect(
         borderRadius: const BorderRadius.all(
           Radius.circular(20),

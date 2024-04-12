@@ -47,8 +47,11 @@ class _StoreViewState extends State<StoreView> {
                     return PostTile(
                       //.where('rescued', isEqualTo: false).get()
                       imgURL: querySnapshot.docs[index].get('imgURL'),
-                      caption: querySnapshot.docs[index].get('caption'),
+                      description: querySnapshot.docs[index].get('caption'),
                       location: querySnapshot.docs[index].get('location'),
+                      id: '', name: '', lat: '', long: '', uploadedBy: '',
+                      category: {}, field: '', date: '', modifiedBy: '',
+                      rescued: querySnapshot.docs[index].get('rescued'),
                     );
                   })
               : Container(

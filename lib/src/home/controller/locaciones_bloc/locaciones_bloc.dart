@@ -6,10 +6,10 @@ import 'package:novedades_de_campo/src/home/model/locaciones_model.dart';
 part 'locaciones_event.dart';
 part 'locaciones_state.dart';
 
-class Yacimiento extends Bloc<LocacionesEvent, LocacionesState> {
+class Locacion extends Bloc<LocacionesEvent, LocacionesState> {
   final FirestoreServiceLocaciones _firestoreService;
 
-  Yacimiento(this._firestoreService) : super(LocacionesInitial()) {
+  Locacion(this._firestoreService) : super(LocacionesInitial()) {
     on<LoadLocaciones>((event, emit) async {
       try {
         emit(LocacionesLoading());

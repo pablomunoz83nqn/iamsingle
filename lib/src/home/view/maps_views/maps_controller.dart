@@ -37,7 +37,6 @@ class MapsController {
             .where('rescued', isEqualTo: false)
             .get();
     final rescuedTmp = rescued.docs;
-    final allData = rescuedTmp.map((doc) => doc.data()).toList();
 
     return rescuedTmp;
   }

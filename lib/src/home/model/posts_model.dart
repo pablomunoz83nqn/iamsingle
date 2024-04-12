@@ -6,7 +6,7 @@ class Posts {
   String long;
   String description;
   String uploadedBy;
-  String category;
+  Map<String, dynamic> category;
   String location;
   String field;
   String date;
@@ -37,7 +37,7 @@ class Posts {
     String? long,
     String? description,
     String? uploadedBy,
-    String? category,
+    Map<String, dynamic>? category,
     String? location,
     String? field,
     String? date,

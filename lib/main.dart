@@ -23,8 +23,8 @@ void main() async {
     BlocProvider<YacimientoBloc>(
       create: (context) => YacimientoBloc(FirestoreServiceYacimiento()),
     ),
-    BlocProvider<Yacimiento>(
-      create: (context) => Yacimiento(FirestoreServiceLocaciones()),
+    BlocProvider<Locacion>(
+      create: (context) => Locacion(FirestoreServiceLocaciones()),
     ),
   ], child: const MyApp()));
 }
@@ -41,13 +41,33 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.red,
       ),
+      onGenerateRoute: _getRoute,
       initialRoute: '/',
 
-      routes: {
+      /*  routes: {
         '/': (context) => const MyHomePage(),
-        '/field': (context) => const FieldView(),
         '/store': (context) => const StoreView(),
-      },
+      }, */
+    );
+  }
+
+  Route<dynamic> _getRoute(RouteSettings settings) {
+    if (settings.name == '/field') {
+      return _buildRoute(
+          settings, FieldView(yacimiento: settings.arguments as String));
+    }
+    if (settings.name == '/') {
+      // crear asi las nuevas rutas
+      return _buildRoute(settings, MyHomePage());
+    }
+
+    return _buildRoute(settings, StoreView());
+  }
+
+  MaterialPageRoute _buildRoute(RouteSettings settings, Widget builder) {
+    return MaterialPageRoute(
+      settings: settings,
+      builder: (ctx) => builder,
     );
   }
 }

@@ -1,12 +1,35 @@
 import 'package:flutter/material.dart';
 
 class PostTile extends StatelessWidget {
+  final String id;
   final String imgURL;
-  final String caption;
+  final String name;
+  final String lat;
+  final String long;
+  final String description;
+  final String uploadedBy;
+  final Map<String, dynamic> category;
   final String location;
+  final String field;
+  final String date;
+  final String modifiedBy;
+  final bool rescued;
 
-  PostTile(
-      {required this.imgURL, required this.caption, required this.location});
+  PostTile({
+    required this.imgURL,
+    required this.location,
+    required this.id,
+    required this.name,
+    required this.lat,
+    required this.long,
+    required this.description,
+    required this.uploadedBy,
+    required this.category,
+    required this.field,
+    required this.date,
+    required this.modifiedBy,
+    required this.rescued,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +60,7 @@ class PostTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  '$caption',
+                  '$description',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20,

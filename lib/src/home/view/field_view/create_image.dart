@@ -1,8 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
+
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -19,11 +23,39 @@ class _CreateImagePostState extends State<CreateImagePost> {
   var yacimiento, locacion;
 
   late TextEditingController textController;
+  late TextEditingController numTextController;
   final _formKey = GlobalKey<FormState>();
 
-  late File? _myImage = File(
-      'https://c1.wallpaperflare.com/preview/989/1023/622/hand-holding-camera-old.jpg');
+  late File? _myImage = File('');
   late final picker = ImagePicker();
+
+  String caption = '';
+  String location = '';
+  String name = '';
+  String lat = '';
+  String long = '';
+  String description = '';
+  String uploadedBy = '';
+  Map<String, dynamic> category = {};
+  String field = '';
+  String categoria = '';
+  String date = '';
+  String modifiedBy = '';
+  bool rescued = false;
+
+  late String _uploadedImageURL;
+  bool _isLoading = false;
+  late HomeViewController crudMethods;
+
+  @override
+  void initState() {
+    textController = TextEditingController();
+    numTextController = TextEditingController();
+    crudMethods = HomeViewController(context);
+    getCurrentPosition();
+    super.initState();
+  }
+
   Future getImage(ImageSource imagesource) async {
     final XFile? pickedImage = await picker.pickImage(source: imagesource);
 
@@ -35,31 +67,6 @@ class _CreateImagePostState extends State<CreateImagePost> {
       }
     });
   }
-
-  late String _uploadedImageURL;
-  bool _isLoading = false;
-  late HomeViewController crudMethods;
-
-  @override
-  void initState() {
-    textController = TextEditingController();
-    crudMethods = HomeViewController(context);
-    getCurrentPosition();
-    super.initState();
-  }
-
-  String caption = '';
-  String location = '';
-  String name = '';
-  String lat = '';
-  String long = '';
-  String description = '';
-  String uploadedBy = '';
-  String category = '';
-  String field = '';
-  String date = '';
-  String modifiedBy = '';
-  bool rescued = false;
 
   getCurrentPosition() async {
     Position position = await _determinePosition();
@@ -133,9 +140,8 @@ class _CreateImagePostState extends State<CreateImagePost> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightGreen[200],
       appBar: AppBar(
-        backgroundColor: Colors.teal,
+        backgroundColor: const Color.fromARGB(255, 250, 220, 98),
         title: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -164,79 +170,134 @@ class _CreateImagePostState extends State<CreateImagePost> {
               margin: const EdgeInsets.all(22.0),
               child: SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text("Upload Image"),
-                              content:
-                                  // ignore: deprecated_member_use
-                                  Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  // ignore: deprecated_member_use
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      await getImage(ImageSource.camera);
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text("Photo with Camera"),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text("Cargar imagen desde"),
+                                  content:
+                                      // ignore: deprecated_member_use
+                                      Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      // ignore: deprecated_member_use
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          await getImage(ImageSource.camera);
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text("Camara"),
+                                      ),
+                                      // ignore: deprecated_member_use
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          await getImage(ImageSource.gallery);
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text("Galeria"),
+                                      ),
+                                      // ignore: deprecated_member_use
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text("Cancelar"),
+                                      ),
+                                    ],
                                   ),
-                                  // ignore: deprecated_member_use
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      await getImage(ImageSource.gallery);
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text("Photo with Gallery"),
-                                  ),
-                                  // ignore: deprecated_member_use
-                                  ElevatedButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text("Cancel"),
-                                  ),
-                                ],
-                              ),
+                                );
+                              },
                             );
                           },
-                        );
-                      },
-                      child: _myImage!.existsSync()
-                          ? SizedBox(
-                              height: 180,
-                              width: MediaQuery.of(context).size.width,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  _myImage!,
-                                  fit: BoxFit.cover,
+                          child: _myImage!.path != ""
+                              ? SizedBox(
+                                  height: 120,
+                                  width: MediaQuery.of(context).size.width / 3,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      _myImage!,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                )
+                              : Container(
+                                  height: 120,
+                                  width: MediaQuery.of(context).size.width / 3,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        const Color.fromARGB(255, 250, 220, 98),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child:
+                                      const Icon(Icons.add_a_photo, size: 80.0),
                                 ),
-                              ),
-                            )
-                          : Container(
-                              height: 180,
-                              width: MediaQuery.of(context).size.width,
-                              decoration: BoxDecoration(
-                                color: Colors.redAccent,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(Icons.add_a_photo, size: 80.0),
-                            ),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        _dropdownLocation(),
+                      ],
                     ),
                     const SizedBox(height: 25.0),
-                    TextField(
-                      decoration:
-                          const InputDecoration(hintText: 'Descripción'),
-                      onChanged: (String value) {
-                        description = value;
-                      },
+                    Row(
+                      children: [
+                        const Text(
+                          "Categoria",
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        const SizedBox(
+                          width: 15,
+                        ),
+                        GestureDetector(
+                          onTap: () => agregarItem(context, "categorias"),
+                          child: const Card(
+                              elevation: 5,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.add),
+                                ],
+                              )),
+                        )
+                      ],
                     ),
-                    _dropdownLocation(),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    _dropdownCategoria(),
+                    const SizedBox(height: 25.0),
+                    SizedBox(
+                      child: category.isNotEmpty
+                          ? ListView(
+                              shrinkWrap: true,
+                              children: category.keys
+                                  .map((key) => Card(
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(key),
+                                            ),
+                                            const SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(category[key].toString()),
+                                          ],
+                                        ),
+                                      ))
+                                  .toList())
+                          : Text("Agregue elementos"),
+                    ),
+                    const SizedBox(height: 25.0),
+                    _descripcionWidget(),
                     TextField(
                       readOnly: true,
                       decoration: const InputDecoration(hintText: 'En campo'),
@@ -278,129 +339,242 @@ class _CreateImagePostState extends State<CreateImagePost> {
     );
   }
 
+  TextField _descripcionWidget() {
+    return TextField(
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
+        hintText: 'Input text',
+        labelText: 'Descripcion',
+      ),
+      onChanged: (String value) {
+        description = value;
+      },
+    );
+  }
+
   Widget _dropdownLocation() {
-    return SizedBox(
-      height: 100,
-      child: Column(
-        children: [
-          Expanded(
-            flex: 1,
-            child: Center(
-              child: StreamBuilder<QuerySnapshot>(
+    return Column(
+      children: [
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('yacimiento')
+              .orderBy('name')
+              .snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (!snapshot.hasData) return Container();
+
+            return Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 250, 220, 98),
+                      borderRadius: BorderRadius.circular(10)),
+                  child: DropdownButton(
+                    hint: const Text("Yacimiento"),
+                    isExpanded: false,
+                    value: yacimiento,
+                    items: snapshot.data!.docs.map((value) {
+                      return DropdownMenuItem(
+                        value: value.get('name'),
+                        child: Text('${value.get('name')}'),
+                      );
+                    }).toList(),
+                    icon: const Icon(Icons.arrow_drop_down),
+                    iconSize: 42,
+                    underline: const SizedBox(),
+                    onChanged: (value) {
+                      debugPrint('selected onchange: $value');
+                      setState(
+                        () {
+                          debugPrint('make selected: $value');
+
+                          yacimiento = value;
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(
+                  width: 5,
+                ),
+                GestureDetector(
+                  onTap: () => agregarItem(context, "yacimiento"),
+                  child: const Card(
+                      elevation: 5,
+                      child: Row(
+                        children: [
+                          Icon(Icons.add),
+                        ],
+                      )),
+                )
+              ],
+            );
+          },
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        yacimiento != null
+            ? StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
-                    .collection('yacimiento')
+                    .collection('locaciones')
+                    .where('yacimiento', isEqualTo: yacimiento)
                     .orderBy('name')
                     .snapshots(),
                 builder: (BuildContext context,
                     AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (!snapshot.hasData) return Container();
+                  if (!snapshot.hasData) {
+                    debugPrint('snapshot status: ${snapshot.error}');
+                    return Text(
+                        'snapshot empty yacimiento: $yacimiento locacion: $locacion');
+                  }
 
                   return Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const Text('Yacimiento: '),
-                      DropdownButton(
-                        isExpanded: false,
-                        value: yacimiento,
-                        items: snapshot.data!.docs.map((value) {
-                          return DropdownMenuItem(
-                            value: value.get('name'),
-                            child: Text('${value.get('name')}'),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          debugPrint('selected onchange: $value');
-                          setState(
-                            () {
-                              debugPrint('make selected: $value');
-                              // Selected value will be stored
-                              yacimiento = value;
-                              // Default dropdown value won't be displayed anymore
-                              //setDefaultMake = false;
-                              // Set makeModel to true to display first car from list
-                              //setDefaultMakeModel = true;
-                            },
-                          );
-                        },
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 250, 220, 98),
+                            borderRadius: BorderRadius.circular(10)),
+                        child: DropdownButton(
+                          underline: Container(),
+                          icon: const Icon(Icons.arrow_drop_down),
+                          iconSize: 42,
+                          hint: const Text("Pad o locacion"),
+                          isExpanded: false,
+                          value: locacion,
+                          items: snapshot.data!.docs.map((value) {
+                            debugPrint('Locacion: ${value.get('name')}');
+                            return DropdownMenuItem(
+                              value: value.get('name'),
+                              child: Text(
+                                '${value.get('name')}',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            debugPrint('Locacion selected: $value');
+                            setState(
+                              () {
+                                locacion = value;
+                              },
+                            );
+                          },
+                        ),
                       ),
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      GestureDetector(
+                        onTap: () => agregarItem(context, "locaciones"),
+                        child: const Card(
+                            elevation: 5,
+                            child: Row(
+                              children: [
+                                Icon(Icons.add),
+                              ],
+                            )),
+                      )
                     ],
+                  );
+                },
+              )
+            : const Text('Seleccione un yacimiento'),
+      ],
+    );
+  }
+
+  Widget _dropdownCategoria() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('categorias')
+          .orderBy('name')
+          .snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (!snapshot.hasData) return Container();
+
+        return Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 250, 220, 98),
+                  borderRadius: BorderRadius.circular(10)),
+              child: DropdownButton(
+                hint: const Text("Seleccionar"),
+                isExpanded: false,
+                value: categoria == "" ? null : categoria,
+                items: snapshot.data!.docs.map((value) {
+                  return DropdownMenuItem(
+                    value: value.get('name'),
+                    child: Text('${value.get('name')}'),
+                  );
+                }).toList(),
+                icon: const Icon(Icons.arrow_drop_down),
+                iconSize: 42,
+                underline: const SizedBox(),
+                onChanged: (value) {
+                  debugPrint('selected onchange: $value');
+                  setState(
+                    () {
+                      debugPrint('make selected: $value');
+
+                      categoria = value.toString();
+                    },
                   );
                 },
               ),
             ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Center(
-              child: yacimiento != null
-                  ? StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('locaciones')
-                          .where('yacimiento', isEqualTo: yacimiento)
-                          .orderBy('name')
-                          .snapshots(),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<QuerySnapshot> snapshot) {
-                        if (!snapshot.hasData) {
-                          debugPrint('snapshot status: ${snapshot.error}');
-                          return Text(
-                              'snapshot empty yacimiento: $yacimiento locacion: $locacion');
-                        }
-
-                        return Row(
-                          children: [
-                            const Text('Pad o locación: '),
-                            DropdownButton(
-                              isExpanded: false,
-                              value: locacion,
-                              items: snapshot.data!.docs.map((value) {
-                                debugPrint('Locacion: ${value.get('name')}');
-                                return DropdownMenuItem(
-                                  value: value.get('name'),
-                                  child: Text(
-                                    '${value.get('name')}',
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                debugPrint('Locacion selected: $value');
-                                setState(
-                                  () {
-                                    locacion = value;
-                                  },
-                                );
-                              },
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            GestureDetector(
-                              onTap: () => showAlertDialog(context),
-                              child: const Card(
-                                  elevation: 5,
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        'Agregar locación',
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                                      Icon(Icons.add),
-                                    ],
-                                  )),
-                            )
-                          ],
-                        );
-                      },
-                    )
-                  : const Text('Seleccione un yacimiento'),
+            const SizedBox(
+              width: 5,
             ),
-          ),
-        ],
-      ),
+            SizedBox(
+              width: 60,
+              child: TextField(
+                keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ],
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: '0',
+                  labelText: 'Cant',
+                ),
+                onChanged: (String value) {
+                  numTextController.text = value;
+                },
+              ),
+            ),
+            GestureDetector(
+              onTap: () => setState(() {
+                category.addAll({categoria: numTextController.text});
+
+                print(category);
+              }),
+              child: const Card(
+                  elevation: 5,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text("Agregar"),
+                      )
+                    ],
+                  )),
+            )
+          ],
+        );
+      },
     );
   }
 
-  showAlertDialog(BuildContext context) {
+  agregarItem(BuildContext context, String item) {
     // set up the buttons
     Widget cancelButton = TextButton(
       child: const Text("Cancelar"),
@@ -416,7 +590,7 @@ class _CreateImagePostState extends State<CreateImagePost> {
         setState(() {
           _isLoading = true;
           FirebaseFirestore.instance
-              .collection('locaciones')
+              .collection((item))
               .add({'name': textController.text, 'yacimiento': yacimiento});
           _isLoading = false;
           Navigator.pop(context);
@@ -428,7 +602,7 @@ class _CreateImagePostState extends State<CreateImagePost> {
     Widget alert = _isLoading
         ? const CircularProgressIndicator()
         : AlertDialog(
-            title: const Text("Ingrese nombre de locación"),
+            title: Text("Ingrese nombre de $item"),
             content: Form(
               key: _formKey,
               child: TextFormField(
