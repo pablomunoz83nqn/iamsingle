@@ -50,7 +50,7 @@ class _StoreViewState extends State<StoreView> {
                       description: querySnapshot.docs[index].get('caption'),
                       location: querySnapshot.docs[index].get('location'),
                       id: '', name: '', lat: '', long: '', uploadedBy: '',
-                      category: {}, field: '', date: '', modifiedBy: '',
+                      category: const {}, field: '', date: '', modifiedBy: '',
                       rescued: querySnapshot.docs[index].get('rescued'),
                     );
                   })
@@ -69,9 +69,9 @@ class _StoreViewState extends State<StoreView> {
       backgroundColor: Colors.orangeAccent[100],
       appBar: AppBar(
         backgroundColor: Colors.orange,
-        title: Row(
+        title: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'Materiales',
               style: TextStyle(

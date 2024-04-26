@@ -1,6 +1,5 @@
 part of 'locaciones_bloc.dart';
 
-@immutable
 abstract class LocacionesState {}
 
 class LocacionesInitial extends LocacionesState {}

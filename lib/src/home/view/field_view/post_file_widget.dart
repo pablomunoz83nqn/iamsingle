@@ -1,6 +1,8 @@
+import 'package:expandable/expandable.dart';
+
 import 'package:flutter/material.dart';
 
-class PostTile extends StatelessWidget {
+class PostTile extends StatefulWidget {
   final String id;
   final String imgURL;
   final String name;
@@ -32,57 +34,148 @@ class PostTile extends StatelessWidget {
   });
 
   @override
+  State<PostTile> createState() => _PostTileState();
+}
+
+class _PostTileState extends State<PostTile> {
+  @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 8),
-      height: 180,
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              imgURL,
-              width: MediaQuery.of(context).size.width,
-              fit: BoxFit.cover,
-            ),
-          ),
-          Container(
-            height: 180,
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          Container(
-            width: MediaQuery.of(context).size.width,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  '$description',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 5),
-                Text(
-                  '$location',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
+      child: Card1(context),
     );
   }
+
+  Widget Card1(BuildContext context) {
+    return ExpandableNotifier(
+        child: Padding(
+      padding: const EdgeInsets.all(5),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: <Widget>[
+            SizedBox(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.orange,
+                  shape: BoxShape.rectangle,
+                ),
+              ),
+            ),
+            ScrollOnExpand(
+              scrollOnExpand: true,
+              scrollOnCollapse: false,
+              child: ExpandablePanel(
+                theme: const ExpandableThemeData(
+                  headerAlignment: ExpandablePanelHeaderAlignment.center,
+                  tapBodyToCollapse: true,
+                ),
+                header: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Text(
+                      widget.description,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    )),
+                collapsed: Text(
+                  widget.name, //name es yacimiento
+                  softWrap: true,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                expanded: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      child: ClipRRect(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(10)),
+                        child: Image(
+                            height: 100,
+                            image: NetworkImage(
+                              widget.imgURL,
+                            )),
+                      ),
+                      onTap: () {
+                        _showDialog(context, widget.imgURL);
+                      },
+                    ),
+                    Expanded(
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: <Widget>[
+                          ...widget.category.entries
+                              .map((u) => <Widget>[
+                                    ListTile(
+                                        title: Text(u.key),
+                                        subtitle: Text("Cantidad"),
+                                        trailing: Row(
+                                            mainAxisAlignment: MainAxisAlignment
+                                                .spaceBetween, // added line
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: <Widget>[
+                                              Text(
+                                                u.value,
+                                                style: const TextStyle(
+                                                  color: Colors.green,
+                                                  fontSize: 20,
+                                                ),
+                                              ),
+                                            ])),
+                                  ])
+                              .expand((element) => element)
+                              .toList(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                builder: (_, collapsed, expanded) {
+                  return Padding(
+                    padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+                    child: Expandable(
+                      collapsed: collapsed,
+                      expanded: expanded,
+                      theme: const ExpandableThemeData(crossFadePoint: 0),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+  }
+}
+
+void _showDialog(BuildContext context, String imageUrl) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      titlePadding: EdgeInsets.zero,
+      title: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Title'),
+            IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.clear),
+            ),
+          ],
+        ),
+      ),
+      content: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: BoxDecoration(
+            image: DecorationImage(
+          image: NetworkImage(imageUrl),
+          fit: BoxFit.fitWidth,
+        )),
+      ),
+    ),
+  );
 }

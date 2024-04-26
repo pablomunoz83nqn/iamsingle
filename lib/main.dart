@@ -23,8 +23,8 @@ void main() async {
     BlocProvider<YacimientoBloc>(
       create: (context) => YacimientoBloc(FirestoreServiceYacimiento()),
     ),
-    BlocProvider<Locacion>(
-      create: (context) => Locacion(FirestoreServiceLocaciones()),
+    BlocProvider<LocacionesBloc>(
+      create: (context) => LocacionesBloc(FirestoreServiceLocaciones()),
     ),
   ], child: const MyApp()));
 }

@@ -5,8 +5,12 @@ class FirestoreServiceLocaciones {
   final CollectionReference _locacionesCollection =
       FirebaseFirestore.instance.collection('locaciones');
 
-  Stream<List<Locaciones>> getLocaciones() {
-    return _locacionesCollection.snapshots().map((snapshot) {
+  Stream<List<Locaciones>> getLocaciones(String name) {
+    return (name == ""
+            ? _locacionesCollection
+            : _locacionesCollection.where('yacimiento', isEqualTo: name))
+        .snapshots()
+        .map((snapshot) {
       return snapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return Locaciones(

@@ -24,22 +24,6 @@ class _FieldViewState extends State<FieldView> {
       if (state is PostsLoading) {
         return const Center(child: CircularProgressIndicator());
       } else if (state is PostsLoaded) {
-//Seteo un if para que no se repitan los posts
-        /* if (originalPostsList != state.posts) {
-          originalPostsList.clear();
-          markerLocations.clear();
-          originalPostsList = state.posts;
-
-          for (var element in originalPostsList) {
-            markerLocations.add(
-              LatLng(
-                double.parse(element.lat),
-                double.parse(element.long),
-              ),
-            );
-          }
-        } */
-
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           shrinkWrap: true,
@@ -50,7 +34,7 @@ class _FieldViewState extends State<FieldView> {
               description: state.posts[index].description,
               location: state.posts[index].location,
               id: '',
-              name: '',
+              name: state.posts[index].name,
               lat: state.posts[index].lat,
               long: state.posts[index].long,
               uploadedBy: '',
@@ -63,7 +47,7 @@ class _FieldViewState extends State<FieldView> {
           },
         );
       } else {
-        return Text("Nada cargado");
+        return const Text("Nada cargado");
       }
     });
   }

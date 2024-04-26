@@ -6,12 +6,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import 'package:novedades_de_campo/src/home/controller/field_controller.dart';
+import 'package:novedades_de_campo/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
+import 'package:novedades_de_campo/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
 
 class CreateImagePost extends StatefulWidget {
   @override
@@ -20,7 +23,8 @@ class CreateImagePost extends StatefulWidget {
 
 class _CreateImagePostState extends State<CreateImagePost> {
   Position? position;
-  var yacimiento, locacion;
+  var selectedYacimiento;
+  var selectedLocacion;
 
   late TextEditingController textController;
   late TextEditingController numTextController;
@@ -52,6 +56,7 @@ class _CreateImagePostState extends State<CreateImagePost> {
     textController = TextEditingController();
     numTextController = TextEditingController();
     crudMethods = HomeViewController(context);
+    BlocProvider.of<YacimientoBloc>(context).add(LoadYacimiento());
     getCurrentPosition();
     super.initState();
   }
@@ -97,7 +102,7 @@ class _CreateImagePostState extends State<CreateImagePost> {
     return await Geolocator.getCurrentPosition();
   }
 
-  uploadUserPost() async {
+  void uploadUserPost() async {
     setState(() {
       _isLoading = true;
       debugPrint('Uploading....');
@@ -119,8 +124,8 @@ class _CreateImagePostState extends State<CreateImagePost> {
       Map<String, dynamic> userPostDetails = {
         "imgURL": _uploadedImageURL,
         "caption": caption,
-        "location": locacion,
-        'name': yacimiento,
+        "location": selectedLocacion,
+        'name': selectedYacimiento,
         'lat': lat,
         'long': long,
         'description': description,
@@ -321,11 +326,19 @@ class _CreateImagePostState extends State<CreateImagePost> {
                       height: 40,
                       child: ElevatedButton(
                         onPressed: () {
-                          if (description != "" &&
-                              locacion != "" &&
-                              yacimiento != "" &&
+//hago check de los parametros que quiero comprobar
+                          if (category.isNotEmpty &&
+                              description != "" &&
+                              selectedLocacion != "" &&
+                              selectedYacimiento != "" &&
                               _myImage!.existsSync()) {
                             return uploadUserPost();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    backgroundColor: Colors.red,
+                                    content: Text(
+                                        'Debe completar todos los campos')));
                           }
                         },
                         child: const Text('Cargar',
@@ -353,17 +366,14 @@ class _CreateImagePostState extends State<CreateImagePost> {
   }
 
   Widget _dropdownLocation() {
+    final YacimientoBloc yacimientoBloc =
+        BlocProvider.of<YacimientoBloc>(context);
     return Column(
       children: [
-        StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('yacimiento')
-              .orderBy('name')
-              .snapshots(),
-          builder:
-              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (!snapshot.hasData) return Container();
-
+        BlocBuilder<YacimientoBloc, YacimientoState>(builder: (context, state) {
+          if (state is YacimientoLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is YacimientoLoaded) {
             return Row(
               children: [
                 Container(
@@ -375,23 +385,23 @@ class _CreateImagePostState extends State<CreateImagePost> {
                   child: DropdownButton(
                     hint: const Text("Yacimiento"),
                     isExpanded: false,
-                    value: yacimiento,
-                    items: snapshot.data!.docs.map((value) {
-                      return DropdownMenuItem(
-                        value: value.get('name'),
-                        child: Text('${value.get('name')}'),
-                      );
-                    }).toList(),
+                    items: state.yacimiento
+                        .map((item) => DropdownMenuItem<String>(
+                            value: item.name, child: Text(item.name)))
+                        .toList(),
+                    value: selectedYacimiento,
                     icon: const Icon(Icons.arrow_drop_down),
                     iconSize: 42,
                     underline: const SizedBox(),
                     onChanged: (value) {
-                      debugPrint('selected onchange: $value');
                       setState(
                         () {
                           debugPrint('make selected: $value');
 
-                          yacimiento = value;
+                          selectedYacimiento = value;
+                          selectedLocacion = null;
+                          BlocProvider.of<LocacionesBloc>(context)
+                              .add(LoadLocaciones(selectedYacimiento));
                         },
                       );
                     },
@@ -412,80 +422,74 @@ class _CreateImagePostState extends State<CreateImagePost> {
                 )
               ],
             );
-          },
-        ),
+          } else if (state is YacimientoOperationSuccess) {
+            yacimientoBloc.add(LoadYacimiento()); // Reload todos
+            return Container(); // Or display a success message
+          } else if (state is YacimientoError) {
+            return Center(child: Text(state.errorMessage));
+          } else {
+            return Container();
+          }
+        }),
         const SizedBox(
           height: 10,
         ),
-        yacimiento != null
-            ? StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('locaciones')
-                    .where('yacimiento', isEqualTo: yacimiento)
-                    .orderBy('name')
-                    .snapshots(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (!snapshot.hasData) {
-                    debugPrint('snapshot status: ${snapshot.error}');
-                    return Text(
-                        'snapshot empty yacimiento: $yacimiento locacion: $locacion');
-                  }
+        BlocBuilder<LocacionesBloc, LocacionesState>(builder: (context, state) {
+          if (state is LocacionesLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is LocacionesLoaded) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 250, 220, 98),
+                      borderRadius: BorderRadius.circular(10)),
+                  child: DropdownButton(
+                    hint: const Text("Locacion"),
+                    isExpanded: false,
+                    items: state.locaciones
+                        .map((item) => DropdownMenuItem<String>(
+                            value: item.name, child: Text(item.name)))
+                        .toList(),
+                    value: selectedLocacion,
+                    icon: const Icon(Icons.arrow_drop_down),
+                    iconSize: 42,
+                    underline: const SizedBox(),
+                    onChanged: (value) {
+                      setState(
+                        () {
+                          debugPrint('make selected: $value');
 
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 250, 220, 98),
-                            borderRadius: BorderRadius.circular(10)),
-                        child: DropdownButton(
-                          underline: Container(),
-                          icon: const Icon(Icons.arrow_drop_down),
-                          iconSize: 42,
-                          hint: const Text("Pad o locacion"),
-                          isExpanded: false,
-                          value: locacion,
-                          items: snapshot.data!.docs.map((value) {
-                            debugPrint('Locacion: ${value.get('name')}');
-                            return DropdownMenuItem(
-                              value: value.get('name'),
-                              child: Text(
-                                '${value.get('name')}',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            debugPrint('Locacion selected: $value');
-                            setState(
-                              () {
-                                locacion = value;
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      GestureDetector(
-                        onTap: () => agregarItem(context, "locaciones"),
-                        child: const Card(
-                            elevation: 5,
-                            child: Row(
-                              children: [
-                                Icon(Icons.add),
-                              ],
-                            )),
-                      )
-                    ],
-                  );
-                },
-              )
-            : const Text('Seleccione un yacimiento'),
+                          selectedLocacion = value;
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(
+                  width: 5,
+                ),
+                GestureDetector(
+                  onTap: () => agregarItem(context, "locaciones"),
+                  child: const Card(
+                      elevation: 5,
+                      child: Row(
+                        children: [
+                          Icon(Icons.add),
+                        ],
+                      )),
+                )
+              ],
+            );
+          } else if (state is LocacionesError) {
+            return Center(child: Text(state.errorMessage));
+          } else {
+            return Container();
+          }
+        })
       ],
     );
   }
@@ -554,8 +558,6 @@ class _CreateImagePostState extends State<CreateImagePost> {
             GestureDetector(
               onTap: () => setState(() {
                 category.addAll({categoria: numTextController.text});
-
-                print(category);
               }),
               child: const Card(
                   elevation: 5,
@@ -589,9 +591,8 @@ class _CreateImagePostState extends State<CreateImagePost> {
         _formKey.currentState!.validate();
         setState(() {
           _isLoading = true;
-          FirebaseFirestore.instance
-              .collection((item))
-              .add({'name': textController.text, 'yacimiento': yacimiento});
+          FirebaseFirestore.instance.collection((item)).add(
+              {'name': textController.text, 'yacimiento': selectedYacimiento});
           _isLoading = false;
           Navigator.pop(context);
         });

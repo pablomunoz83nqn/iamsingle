@@ -42,27 +42,11 @@ class _SearchScreenState extends State<SearchScreen> {
           return const Center(child: CircularProgressIndicator());
         } else if (state is YacimientoLoaded) {
           originalYacimientoList = state.yacimiento;
-          return /* ListView.builder(
-              itemCount: yacimientos.length,
-              itemBuilder: (context, index) {
-                final todo = yacimientos[index];
-                return ListTile(
-                  title: Text(todo.name),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      yacimientoBloc.add(DeleteYacimiento(todo.id));
-                    },
-                  ),
-                );
-              },
-            ); */
-
-              Column(
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Seleccione Yacimiento"),
-              SizedBox(
+              const Text("Seleccione Yacimiento"),
+              const SizedBox(
                 height: 10,
               ),
               _searchBar(originalYacimientoList),

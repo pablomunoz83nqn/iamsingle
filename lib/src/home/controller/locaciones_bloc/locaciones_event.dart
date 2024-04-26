@@ -1,9 +1,12 @@
 part of 'locaciones_bloc.dart';
 
-@immutable
 abstract class LocacionesEvent {}
 
-class LoadLocaciones extends LocacionesEvent {}
+class LoadLocaciones extends LocacionesEvent {
+  String name;
+
+  LoadLocaciones(this.name);
+}
 
 class AddLocacion extends LocacionesEvent {
   final Locaciones locaciones;

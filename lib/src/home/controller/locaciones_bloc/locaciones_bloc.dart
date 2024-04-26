@@ -1,22 +1,22 @@
-import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:novedades_de_campo/src/home/controller/locaciones_controller.dart';
 import 'package:novedades_de_campo/src/home/model/locaciones_model.dart';
 
 part 'locaciones_event.dart';
 part 'locaciones_state.dart';
 
-class Locacion extends Bloc<LocacionesEvent, LocacionesState> {
+class LocacionesBloc extends Bloc<LocacionesEvent, LocacionesState> {
   final FirestoreServiceLocaciones _firestoreService;
 
-  Locacion(this._firestoreService) : super(LocacionesInitial()) {
+  LocacionesBloc(this._firestoreService) : super(LocacionesInitial()) {
     on<LoadLocaciones>((event, emit) async {
       try {
         emit(LocacionesLoading());
-        final todos = await _firestoreService.getLocaciones().first;
-        emit(LocacionesLoaded(todos));
+        final locaciones =
+            await _firestoreService.getLocaciones(event.name).first;
+        emit(LocacionesLoaded(locaciones));
       } catch (e) {
-        emit(LocacionesError('Failed to load todos.'));
+        emit(LocacionesError('Failed to load locaciones.'));
       }
     });
 

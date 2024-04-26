@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
@@ -114,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         );
       } else {
-        return Text("Error en carga de base de datos");
+        return const Text("Error en carga de base de datos");
       }
     });
   }

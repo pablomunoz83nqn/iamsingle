@@ -13,18 +13,19 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
-    BlocProvider.of<Locacion>(context).add(LoadLocaciones());
+    BlocProvider.of<LocacionesBloc>(context).add(LoadLocaciones(""));
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final Locacion _locacionesBloc = BlocProvider.of<Locacion>(context);
+    final LocacionesBloc locacionesBloc =
+        BlocProvider.of<LocacionesBloc>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Firestore'),
+        title: const Text('Firestore'),
       ),
-      body: BlocBuilder<Locacion, LocacionesState>(
+      body: BlocBuilder<LocacionesBloc, LocacionesState>(
         builder: (context, state) {
           if (state is LocacionesLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -46,14 +47,14 @@ class _HomeViewState extends State<HomeView> {
                   trailing: IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: () {
-                      _locacionesBloc.add(DeleteLocacion(todo.id));
+                      locacionesBloc.add(DeleteLocacion(todo.id));
                     },
                   ),
                 );
               },
             );
           } else if (state is LocacionesOperationSuccess) {
-            _locacionesBloc.add(LoadLocaciones()); // Reload todos
+            locacionesBloc.add(LoadLocaciones("")); // Reload todos
             return Container(); // Or display a success message
           } else if (state is LocacionesError) {
             return Center(child: Text(state.errorMessage));
@@ -72,14 +73,14 @@ class _HomeViewState extends State<HomeView> {
   }
 
   void _showAddLocacionesDialog(BuildContext context) {
-    final _titleController = TextEditingController();
+    final titleController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Add Locaciones'),
           content: TextField(
-            controller: _titleController,
+            controller: titleController,
             decoration: const InputDecoration(hintText: 'Locaciones title'),
           ),
           actions: [
@@ -94,10 +95,10 @@ class _HomeViewState extends State<HomeView> {
               onPressed: () {
                 final todo = Locaciones(
                   id: DateTime.now().toString(),
-                  name: _titleController.text,
+                  name: titleController.text,
                   yacimiento: "Loma campana",
                 );
-                BlocProvider.of<Locacion>(context).add(AddLocacion(todo));
+                BlocProvider.of<LocacionesBloc>(context).add(AddLocacion(todo));
                 Navigator.pop(context);
               },
             ),
