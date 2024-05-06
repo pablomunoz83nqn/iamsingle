@@ -13,8 +13,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     on<LoadPosts>((event, emit) async {
       try {
         emit(PostsLoading());
-        final todos = await _firestoreService.getPosts(event.name).first;
-        emit(PostsLoaded(todos));
+        final posts = await _firestoreService.getPosts(event.name).first;
+        emit(PostsLoaded(posts));
       } catch (e) {
         emit(PostsError('Failed to load todos.'));
       }
@@ -25,6 +25,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         emit(PostsLoading());
         await _firestoreService.addPosts(event.posts);
         emit(PostsOperationSuccess('Posts added successfully.'));
+        emit(PostsLoading());
+        final posts = await _firestoreService.getPosts("").first;
+        emit(PostsLoaded(posts));
       } catch (e) {
         emit(PostsError('Failed to add todo.'));
       }
@@ -35,8 +38,11 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         emit(PostsLoading());
         await _firestoreService.updatePosts(event.posts);
         emit(PostsOperationSuccess('Posts updated successfully.'));
+        emit(PostsLoading());
+        final posts = await _firestoreService.getPosts("").first;
+        emit(PostsLoaded(posts));
       } catch (e) {
-        emit(PostsError('Failed to update todo.'));
+        emit(PostsError('Error en edicion, por favor reinicie la app'));
       }
     });
 

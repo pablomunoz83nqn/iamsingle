@@ -1,37 +1,12 @@
 import 'package:expandable/expandable.dart';
 
 import 'package:flutter/material.dart';
+import 'package:novedades_de_campo/src/home/model/posts_model.dart';
 
 class PostTile extends StatefulWidget {
-  final String id;
-  final String imgURL;
-  final String name;
-  final String lat;
-  final String long;
-  final String description;
-  final String uploadedBy;
-  final Map<String, dynamic> category;
-  final String location;
-  final String field;
-  final String date;
-  final String modifiedBy;
-  final bool rescued;
+  final Posts post;
 
-  PostTile({
-    required this.imgURL,
-    required this.location,
-    required this.id,
-    required this.name,
-    required this.lat,
-    required this.long,
-    required this.description,
-    required this.uploadedBy,
-    required this.category,
-    required this.field,
-    required this.date,
-    required this.modifiedBy,
-    required this.rescued,
-  });
+  PostTile({required this.post});
 
   @override
   State<PostTile> createState() => _PostTileState();
@@ -41,11 +16,11 @@ class _PostTileState extends State<PostTile> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Card1(context),
+      child: card(context),
     );
   }
 
-  Widget Card1(BuildContext context) {
+  Widget card(BuildContext context) {
     return ExpandableNotifier(
         child: Padding(
       padding: const EdgeInsets.all(5),
@@ -70,13 +45,13 @@ class _PostTileState extends State<PostTile> {
                   tapBodyToCollapse: true,
                 ),
                 header: Padding(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     child: Text(
-                      widget.description,
+                      widget.post.description,
                       style: Theme.of(context).textTheme.bodyLarge,
                     )),
                 collapsed: Text(
-                  widget.name, //name es yacimiento
+                  widget.post.name, //name es yacimiento
                   softWrap: true,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -91,29 +66,29 @@ class _PostTileState extends State<PostTile> {
                         child: Image(
                             height: 100,
                             image: NetworkImage(
-                              widget.imgURL,
+                              widget.post.imgURL,
                             )),
                       ),
                       onTap: () {
-                        _showDialog(context, widget.imgURL);
+                        _showDialog(context, widget.post.imgURL);
                       },
                     ),
                     Expanded(
                       child: ListView(
                         shrinkWrap: true,
                         children: <Widget>[
-                          ...widget.category.entries
+                          ...widget.post.category.entries
                               .map((u) => <Widget>[
                                     ListTile(
                                         title: Text(u.key),
-                                        subtitle: Text("Cantidad"),
+                                        subtitle: const Text("Cantidad"),
                                         trailing: Row(
                                             mainAxisAlignment: MainAxisAlignment
                                                 .spaceBetween, // added line
                                             mainAxisSize: MainAxisSize.min,
                                             children: <Widget>[
                                               Text(
-                                                u.value,
+                                                u.value.toString(),
                                                 style: const TextStyle(
                                                   color: Colors.green,
                                                   fontSize: 20,
@@ -126,11 +101,16 @@ class _PostTileState extends State<PostTile> {
                         ],
                       ),
                     ),
+                    IconButton(
+                        onPressed: () => Navigator.pushNamed(context, '/edit',
+                            arguments: widget.post),
+                        icon: const Icon(Icons.edit_note))
                   ],
                 ),
                 builder: (_, collapsed, expanded) {
                   return Padding(
-                    padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+                    padding:
+                        const EdgeInsets.only(left: 10, right: 10, bottom: 10),
                     child: Expandable(
                       collapsed: collapsed,
                       expanded: expanded,

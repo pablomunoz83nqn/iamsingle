@@ -50,7 +50,7 @@ class FirestoreServicePosts {
     });
   }
 
-  Future<void> updatePosts(Posts post) {
+  Future<void> updatePosts(Posts post) async {
     return _postsCollection.doc(post.id).update({
       'id': post.id,
       "imgURL": post.imgURL,

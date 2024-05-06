@@ -7,8 +7,10 @@ import 'package:novedades_de_campo/src/home/controller/posts_bloc/posts_bloc.dar
 import 'package:novedades_de_campo/src/home/controller/posts_controller.dart';
 import 'package:novedades_de_campo/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
 import 'package:novedades_de_campo/src/home/controller/yacimiento_controller.dart';
+import 'package:novedades_de_campo/src/home/model/posts_model.dart';
+import 'package:novedades_de_campo/src/home/view/field_view/edit_post.dart';
 import 'package:novedades_de_campo/src/home/view/field_view/field_view.dart';
-import 'package:novedades_de_campo/src/home/view/field_view/store_view.dart';
+
 // Import the firebase_core plugin
 
 import 'package:novedades_de_campo/src/home/view/home_view/home_admin_view.dart';
@@ -58,10 +60,13 @@ class MyApp extends StatelessWidget {
     }
     if (settings.name == '/') {
       // crear asi las nuevas rutas
-      return _buildRoute(settings, MyHomePage());
+      return _buildRoute(settings, const MyHomePage());
+    }
+    if (settings.name == '/edit') {
+      return _buildRoute(settings, EditPost(post: settings.arguments as Posts));
     }
 
-    return _buildRoute(settings, StoreView());
+    return _buildRoute(settings, MyHomePage());
   }
 
   MaterialPageRoute _buildRoute(RouteSettings settings, Widget builder) {

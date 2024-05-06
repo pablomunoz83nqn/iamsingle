@@ -112,8 +112,10 @@ class _MyHomePageState extends State<MyHomePage> {
             child: const Icon(Icons.add),
           ),
         );
+      } else if (state is PostsOperationSuccess) {
+        return const Center(child: CircularProgressIndicator());
       } else {
-        return const Text("Error en carga de base de datos");
+        return const Center(child: Text("Error en carga de base de datos"));
       }
     });
   }

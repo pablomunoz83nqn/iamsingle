@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:geolocator/geolocator.dart';
@@ -14,17 +15,24 @@ import 'dart:io';
 
 import 'package:novedades_de_campo/src/home/controller/field_controller.dart';
 import 'package:novedades_de_campo/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
+import 'package:novedades_de_campo/src/home/controller/posts_bloc/posts_bloc.dart';
 import 'package:novedades_de_campo/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
+import 'package:novedades_de_campo/src/home/model/posts_model.dart';
 
-class CreateImagePost extends StatefulWidget {
+class EditPost extends StatefulWidget {
+  final Posts post;
+
   @override
-  _CreateImagePostState createState() => _CreateImagePostState();
+  const EditPost({Key? key, required this.post}) : super(key: key);
+
+  @override
+  EditPostState createState() => EditPostState();
 }
 
-class _CreateImagePostState extends State<CreateImagePost> {
+class EditPostState extends State<EditPost> {
   Position? position;
-  var selectedYacimiento;
-  var selectedLocacion;
+  late String selectedYacimiento;
+  late String selectedLocacion;
 
   late TextEditingController textController;
   late TextEditingController numTextController;
@@ -53,6 +61,10 @@ class _CreateImagePostState extends State<CreateImagePost> {
 
   @override
   void initState() {
+    selectedYacimiento = widget.post.name;
+    selectedLocacion = widget.post.location;
+    category = widget.post.category;
+
     textController = TextEditingController();
     numTextController = TextEditingController();
     crudMethods = HomeViewController(context);
@@ -107,39 +119,50 @@ class _CreateImagePostState extends State<CreateImagePost> {
       _isLoading = true;
       debugPrint('Uploading....');
     });
-    Reference storageRef = FirebaseStorage.instance
-        .ref()
-        .child('postedImages/${DateTime.now()}.jpg');
 
-    final UploadTask uploadTask = storageRef.putFile(_myImage!);
-    await uploadTask.whenComplete(() async {
-      debugPrint('File Uploaded');
+    if (_myImage!.path != "") {
+      Reference storageRef = FirebaseStorage.instance
+          .ref()
+          .child('postedImages/${DateTime.now()}.jpg');
 
-      final String url = await storageRef.getDownloadURL();
-      setState(() {
-        _uploadedImageURL = url;
+      final UploadTask uploadTask = storageRef.putFile(_myImage!);
+
+      await uploadTask.whenComplete(() async {
+        debugPrint('File Uploaded');
+
+        final String url = await storageRef.getDownloadURL();
+        setState(() {
+          _uploadedImageURL = url;
+        });
+        debugPrint('File URL = $_uploadedImageURL');
+
+        Posts userPostDetails = uploadPostMethod(true);
+        BlocProvider.of<PostsBloc>(context).add(UpdatePosts(userPostDetails));
       });
-      debugPrint('File URL = $_uploadedImageURL');
+    } else {
+      Posts userPostDetails = uploadPostMethod(false);
+      BlocProvider.of<PostsBloc>(context).add(UpdatePosts(userPostDetails));
+    }
+    Navigator.pushNamed(context, "/");
+  }
 
-      Map<String, dynamic> userPostDetails = {
-        "imgURL": _uploadedImageURL,
-        "caption": caption,
-        "location": selectedLocacion,
-        'name': selectedYacimiento,
-        'lat': lat,
-        'long': long,
-        'description': description,
-        'uploadedBy': uploadedBy,
-        'category': category,
-        'field': field,
-        'date': DateTime.now(),
-        'modifiedBy': modifiedBy,
-        'rescued': rescued,
-      };
-      crudMethods
-          .addData(userPostDetails)
-          .then((value) => Navigator.pop(context));
-    });
+  Posts uploadPostMethod(bool gotImage) {
+    Posts userPostDetails = Posts(
+      imgURL: gotImage ? _uploadedImageURL : widget.post.imgURL,
+      //caption: caption,
+      location: selectedLocacion,
+      name: selectedYacimiento,
+      lat: lat,
+      long: long,
+      description: description,
+      uploadedBy: uploadedBy,
+      category: category,
+      field: field,
+      date: DateTime.now().toString(),
+      modifiedBy: modifiedBy,
+      rescued: rescued, id: widget.post.id,
+    );
+    return userPostDetails;
   }
 
   @override
@@ -151,7 +174,7 @@ class _CreateImagePostState extends State<CreateImagePost> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Nuevo',
+              'Editar',
               style: TextStyle(
                 fontSize: 22.0,
               ),
@@ -240,14 +263,13 @@ class _CreateImagePostState extends State<CreateImagePost> {
                                         const Color.fromARGB(255, 250, 220, 98),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child:
-                                      const Icon(Icons.add_a_photo, size: 80.0),
+                                  child: Image.network(widget.post.imgURL),
                                 ),
                         ),
                         const SizedBox(
                           width: 10,
                         ),
-                        _dropdownLocation(),
+                        Flexible(child: _locationYacimiento()),
                       ],
                     ),
                     const SizedBox(height: 25.0),
@@ -295,6 +317,15 @@ class _CreateImagePostState extends State<CreateImagePost> {
                                               width: 5,
                                             ),
                                             Text(category[key].toString()),
+                                            SizedBox(
+                                              width: 20,
+                                            ),
+                                            IconButton(
+                                                onPressed: () {
+                                                  category.remove(key);
+                                                  setState(() {});
+                                                },
+                                                icon: Icon(Icons.remove))
                                           ],
                                         ),
                                       ))
@@ -330,8 +361,7 @@ class _CreateImagePostState extends State<CreateImagePost> {
                           if (category.isNotEmpty &&
                               description != "" &&
                               selectedLocacion != "" &&
-                              selectedYacimiento != "" &&
-                              _myImage!.existsSync()) {
+                              selectedYacimiento != "") {
                             return uploadUserPost();
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -365,131 +395,36 @@ class _CreateImagePostState extends State<CreateImagePost> {
     );
   }
 
-  Widget _dropdownLocation() {
-    final YacimientoBloc yacimientoBloc =
-        BlocProvider.of<YacimientoBloc>(context);
+  Widget _locationYacimiento() {
     return Column(
       children: [
-        BlocBuilder<YacimientoBloc, YacimientoState>(builder: (context, state) {
-          if (state is YacimientoLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is YacimientoLoaded) {
-            return Row(
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 250, 220, 98),
-                      borderRadius: BorderRadius.circular(10)),
-                  child: DropdownButton(
-                    hint: const Text("Yacimiento"),
-                    isExpanded: false,
-                    items: state.yacimiento
-                        .map((item) => DropdownMenuItem<String>(
-                            value: item.name, child: Text(item.name)))
-                        .toList(),
-                    value: selectedYacimiento,
-                    icon: const Icon(Icons.arrow_drop_down),
-                    iconSize: 42,
-                    underline: const SizedBox(),
-                    onChanged: (value) {
-                      setState(
-                        () {
-                          debugPrint('make selected: $value');
-
-                          selectedYacimiento = value;
-                          selectedLocacion = null;
-                          BlocProvider.of<LocacionesBloc>(context)
-                              .add(LoadLocaciones(selectedYacimiento));
-                        },
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(
-                  width: 5,
-                ),
-                GestureDetector(
-                  onTap: () => agregarItem(context, "yacimiento"),
-                  child: const Card(
-                      elevation: 5,
-                      child: Row(
-                        children: [
-                          Icon(Icons.add),
-                        ],
-                      )),
-                )
-              ],
-            );
-          } else if (state is YacimientoOperationSuccess) {
-            yacimientoBloc.add(LoadYacimiento()); // Reload todos
-            return Container(); // Or display a success message
-          } else if (state is YacimientoError) {
-            return Center(child: Text(state.errorMessage));
-          } else {
-            return Container();
-          }
-        }),
+        TextField(
+          enabled: false,
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.teal)),
+            labelText: selectedYacimiento,
+            prefixIcon: const Icon(
+              Icons.map,
+              color: Colors.yellow,
+            ),
+          ),
+        ),
         const SizedBox(
           height: 10,
         ),
-        BlocBuilder<LocacionesBloc, LocacionesState>(builder: (context, state) {
-          if (state is LocacionesLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is LocacionesLoaded) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 250, 220, 98),
-                      borderRadius: BorderRadius.circular(10)),
-                  child: DropdownButton(
-                    hint: const Text("Locacion"),
-                    isExpanded: false,
-                    items: state.locaciones
-                        .map((item) => DropdownMenuItem<String>(
-                            value: item.name, child: Text(item.name)))
-                        .toList(),
-                    value: selectedLocacion,
-                    icon: const Icon(Icons.arrow_drop_down),
-                    iconSize: 42,
-                    underline: const SizedBox(),
-                    onChanged: (value) {
-                      setState(
-                        () {
-                          debugPrint('make selected: $value');
-
-                          selectedLocacion = value;
-                        },
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(
-                  width: 5,
-                ),
-                GestureDetector(
-                  onTap: () => agregarItem(context, "locaciones"),
-                  child: const Card(
-                      elevation: 5,
-                      child: Row(
-                        children: [
-                          Icon(Icons.add),
-                        ],
-                      )),
-                )
-              ],
-            );
-          } else if (state is LocacionesError) {
-            return Center(child: Text(state.errorMessage));
-          } else {
-            return Container();
-          }
-        })
+        TextField(
+          enabled: false,
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.teal)),
+            labelText: selectedLocacion,
+            prefixIcon: const Icon(
+              Icons.location_off_sharp,
+              color: Colors.yellow,
+            ),
+          ),
+        ),
       ],
     );
   }
