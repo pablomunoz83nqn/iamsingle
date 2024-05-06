@@ -45,11 +45,11 @@ class _SearchScreenState extends State<SearchScreen> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Seleccione Yacimiento"),
+              const Text(" Yacimiento"),
               const SizedBox(
-                height: 10,
+                height: 2,
               ),
-              _searchBar(originalYacimientoList),
+              SizedBox(height: 60, child: _searchBar(originalYacimientoList)),
             ],
           );
         } else if (state is YacimientoOperationSuccess) {
@@ -64,42 +64,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  void _showAddTodoDialog(BuildContext context) {
-    final _titleController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Agregar Yacimiento'),
-          content: TextField(
-            controller: _titleController,
-            decoration: const InputDecoration(hintText: 'Todo title'),
-          ),
-          actions: [
-            ElevatedButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            ElevatedButton(
-              child: const Text('Add'),
-              onPressed: () {
-                final locacion = Yacimiento(
-                  id: DateTime.now().toString(),
-                  name: _titleController.text,
-                );
-                Navigator.pop(context);
-                BlocProvider.of<YacimientoBloc>(context)
-                    .add(AddYacimiento(locacion));
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _searchBar(List<Yacimiento> yacimientos) {
     var dropdownValue =
         widget.selectedYacimiento != "" ? widget.selectedYacimiento : "Todos";
@@ -109,6 +73,8 @@ class _SearchScreenState extends State<SearchScreen> {
           elevation: 1, borderRadius: BorderRadius.all(Radius.circular(15))),
       textFieldConfiguration: TextFieldConfiguration(
         decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
           border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
               borderSide: const BorderSide(

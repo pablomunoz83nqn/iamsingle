@@ -51,6 +51,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         emit(PostsLoading());
         await _firestoreService.deletePosts(event.postsId);
         emit(PostsOperationSuccess('Posts deleted successfully.'));
+        emit(PostsLoading());
+        final posts = await _firestoreService.getPosts("").first;
+        emit(PostsLoaded(posts));
       } catch (e) {
         emit(PostsError('Failed to delete todo.'));
       }

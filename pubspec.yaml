@@ -45,6 +45,7 @@ dependencies:
   lottie: ^2.1.0
   path: ^1.8.1
   # permission: ^0.1.7
+  syncfusion_flutter_charts: ^25.1.42+1
 
 
   # The following adds the Cupertino Icons font to your application.
