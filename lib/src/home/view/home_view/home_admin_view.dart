@@ -29,7 +29,8 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     controller = HomeViewController(context);
     mapController = MapsController(context);
-    BlocProvider.of<PostsBloc>(context).add(LoadPosts(""));
+    BlocProvider.of<PostsBloc>(context).add(LoadRescuedPosts(""));
+    BlocProvider.of<PostsBloc>(context).add(LoadOnFieldPosts(""));
   }
 
   @override
@@ -72,7 +73,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     selectedYacimiento: selectedYacimiento,
                     onApply: (String name) {
                       selectedYacimiento = name;
-                      BlocProvider.of<PostsBloc>(context).add(LoadPosts(name));
+                      BlocProvider.of<PostsBloc>(context)
+                          .add(LoadRescuedPosts(name));
+                      BlocProvider.of<PostsBloc>(context)
+                          .add(LoadOnFieldPosts(name));
                     },
                   ),
                   Center(
@@ -91,9 +95,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       materialCard(context, '/field', numEnCampo,
-                          'Lotes en campo', 'assets/lottie/campo.json'),
-                      materialCard(context, '/store', numRecuperados,
-                          'Lotes recuperados', 'assets/lottie/deposito.json'),
+                          'Lotes en campo', 'assets/lottie/campo.json', false),
+                      materialCard(
+                          context,
+                          '/store',
+                          numRecuperados,
+                          'Lotes recuperados',
+                          'assets/lottie/deposito.json',
+                          true),
                     ],
                   ),
                   mapWidget(context),
@@ -136,10 +145,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget materialCard(BuildContext context, String ontap, int numItems,
-      String type, String lottie) {
+      String type, String lottie, bool rescued) {
     return GestureDetector(
-      onTap: () =>
-          Navigator.pushNamed(context, ontap, arguments: selectedYacimiento),
+      onTap: () => Navigator.pushNamed(context, ontap,
+          arguments: {selectedYacimiento, rescued}),
       child: ClipRRect(
         borderRadius: const BorderRadius.all(
           Radius.circular(20),

@@ -3,10 +3,16 @@ part of 'posts_bloc.dart';
 @immutable
 abstract class PostsEvent {}
 
-class LoadPosts extends PostsEvent {
+class LoadRescuedPosts extends PostsEvent {
   String name;
 
-  LoadPosts(this.name);
+  LoadRescuedPosts(this.name);
+}
+
+class LoadOnFieldPosts extends PostsEvent {
+  String name;
+
+  LoadOnFieldPosts(this.name);
 }
 
 class AddPosts extends PostsEvent {

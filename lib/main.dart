@@ -55,8 +55,7 @@ class MyApp extends StatelessWidget {
 
   Route<dynamic> _getRoute(RouteSettings settings) {
     if (settings.name == '/field') {
-      return _buildRoute(
-          settings, FieldView(yacimiento: settings.arguments as String));
+      return _buildRoute(settings, FieldView(parametros: settings.arguments!));
     }
     if (settings.name == '/') {
       // crear asi las nuevas rutas

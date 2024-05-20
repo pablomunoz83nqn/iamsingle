@@ -10,10 +10,20 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   final FirestoreServicePosts _firestoreService;
 
   PostsBloc(this._firestoreService) : super(PostsInitial()) {
-    on<LoadPosts>((event, emit) async {
+    on<LoadRescuedPosts>((event, emit) async {
       try {
         emit(PostsLoading());
-        final posts = await _firestoreService.getPosts(event.name).first;
+        final posts = await _firestoreService.getPosts(event.name, true).first;
+        emit(PostsLoaded(posts));
+      } catch (e) {
+        emit(PostsError('Failed to load todos.'));
+      }
+    });
+
+    on<LoadOnFieldPosts>((event, emit) async {
+      try {
+        emit(PostsLoading());
+        final posts = await _firestoreService.getPosts(event.name, false).first;
         emit(PostsLoaded(posts));
       } catch (e) {
         emit(PostsError('Failed to load todos.'));
@@ -26,7 +36,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         await _firestoreService.addPosts(event.posts);
         emit(PostsOperationSuccess('Posts added successfully.'));
         emit(PostsLoading());
-        final posts = await _firestoreService.getPosts("").first;
+        final posts = await _firestoreService.getPosts("", false).first;
         emit(PostsLoaded(posts));
       } catch (e) {
         emit(PostsError('Failed to add todo.'));
@@ -39,7 +49,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         await _firestoreService.updatePosts(event.posts);
         emit(PostsOperationSuccess('Posts updated successfully.'));
         emit(PostsLoading());
-        final posts = await _firestoreService.getPosts("").first;
+        final posts = await _firestoreService.getPosts("", false).first;
         emit(PostsLoaded(posts));
       } catch (e) {
         emit(PostsError('Error en edicion, por favor reinicie la app'));
@@ -52,7 +62,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         await _firestoreService.deletePosts(event.postsId);
         emit(PostsOperationSuccess('Posts deleted successfully.'));
         emit(PostsLoading());
-        final posts = await _firestoreService.getPosts("").first;
+        final posts = await _firestoreService.getPosts("", false).first;
         emit(PostsLoaded(posts));
       } catch (e) {
         emit(PostsError('Failed to delete todo.'));

@@ -6,10 +6,12 @@ class FirestoreServicePosts {
   final CollectionReference _postsCollection =
       FirebaseFirestore.instance.collection('posts');
 
-  Stream<List<Posts>> getPosts(String name) {
+  Stream<List<Posts>> getPosts(String name, bool rescued) {
     return (name == ""
             ? _postsCollection
-            : _postsCollection.where('name', isEqualTo: name))
+            : _postsCollection
+                .where('name', isEqualTo: name)
+                .where('recued', isEqualTo: rescued))
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {

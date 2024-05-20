@@ -4,14 +4,19 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:novedades_de_campo/src/home/controller/posts_bloc/posts_bloc.dart';
 import 'package:novedades_de_campo/src/home/model/posts_model.dart';
+import 'package:novedades_de_campo/src/home/model/yacimiento_model.dart';
 import 'package:novedades_de_campo/src/home/view/field_view/create_image.dart';
 import 'package:novedades_de_campo/src/home/view/field_view/post_file_widget.dart';
 import 'package:novedades_de_campo/src/home/view/home_view/search_screen.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class FieldView extends StatefulWidget {
-  final String yacimiento;
-  const FieldView({Key? key, required this.yacimiento}) : super(key: key);
+  final Object parametros;
+
+  const FieldView({
+    Key? key,
+    required this.parametros,
+  }) : super(key: key);
 
   @override
   FieldViewState createState() => FieldViewState();
@@ -21,10 +26,22 @@ class FieldViewState extends State<FieldView> {
   Map<String, int> listadoElementos = {};
   String sugerencias = "";
   String selectedYacimiento = "";
+  late Set parametros;
+
+  late bool rescued;
   @override
   void initState() {
     super.initState();
-    BlocProvider.of<PostsBloc>(context).add(LoadPosts(widget.yacimiento));
+    parametros = widget.parametros as Set;
+    selectedYacimiento = parametros.elementAt(0) as String;
+    rescued = parametros.elementAt(1) as bool;
+    if (rescued) {
+      BlocProvider.of<PostsBloc>(context)
+          .add(LoadRescuedPosts(selectedYacimiento));
+    } else {
+      BlocProvider.of<PostsBloc>(context)
+          .add(LoadOnFieldPosts(selectedYacimiento));
+    }
   }
 
   Widget? userPostsList() {
@@ -100,12 +117,14 @@ class FieldViewState extends State<FieldView> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: SearchScreen(
-                  selectedYacimiento: selectedYacimiento == ""
-                      ? widget.yacimiento
-                      : selectedYacimiento,
+                  selectedYacimiento:
+                      selectedYacimiento == "" ? "" : selectedYacimiento,
                   onApply: (String name) {
                     selectedYacimiento = name;
-                    BlocProvider.of<PostsBloc>(context).add(LoadPosts(name));
+                    BlocProvider.of<PostsBloc>(context)
+                        .add(LoadRescuedPosts(name));
+                    BlocProvider.of<PostsBloc>(context)
+                        .add(LoadOnFieldPosts(name));
                   },
                 ),
               ),
