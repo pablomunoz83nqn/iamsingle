@@ -11,7 +11,7 @@ class FirestoreServicePosts {
             ? _postsCollection
             : _postsCollection
                 .where('name', isEqualTo: name)
-                .where('recued', isEqualTo: rescued))
+                .where('rescued', isEqualTo: rescued))
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {

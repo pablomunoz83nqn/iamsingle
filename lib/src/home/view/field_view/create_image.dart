@@ -132,7 +132,7 @@ class _CreateImagePostState extends State<CreateImagePost> {
         'uploadedBy': uploadedBy,
         'category': category,
         'field': field,
-        'date': DateTime.now(),
+        'date': DateTime.now().toString(),
         'modifiedBy': modifiedBy,
         'rescued': rescued,
       };
@@ -328,7 +328,6 @@ class _CreateImagePostState extends State<CreateImagePost> {
                         onPressed: () {
 //hago check de los parametros que quiero comprobar
                           if (category.isNotEmpty &&
-                              description != "" &&
                               selectedLocacion != "" &&
                               selectedYacimiento != "" &&
                               _myImage!.existsSync()) {

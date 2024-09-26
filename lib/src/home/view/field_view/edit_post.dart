@@ -167,6 +167,7 @@ class EditPostState extends State<EditPost> {
 
   @override
   Widget build(BuildContext context) {
+    List rescuedItems = ["En campo", "Recuperado"];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 250, 220, 98),
@@ -174,16 +175,9 @@ class EditPostState extends State<EditPost> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Editar',
+              'Editar registro',
               style: TextStyle(
                 fontSize: 22.0,
-              ),
-            ),
-            Text(
-              ' registro',
-              style: TextStyle(
-                fontSize: 22.0,
-                color: Colors.black,
               ),
             ),
           ],
@@ -334,16 +328,42 @@ class EditPostState extends State<EditPost> {
                     ),
                     const SizedBox(height: 25.0),
                     _descripcionWidget(),
-                    TextField(
-                      readOnly: true,
-                      decoration: const InputDecoration(hintText: 'En campo'),
-                      onChanged: (String value) {
-                        rescued = false;
-                      },
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          const Text(
+                            "Estado",
+                            style: TextStyle(fontSize: 20),
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          DropdownButton(
+                              isExpanded: false,
+                              items: rescuedItems
+                                  .map((item) => DropdownMenuItem<String>(
+                                      value: item, child: Text(item)))
+                                  .toList(),
+                              value: rescued ? "Recuperado" : "En campo",
+                              icon: const Icon(Icons.arrow_drop_down),
+                              iconSize: 42,
+                              underline: const SizedBox(),
+                              onChanged: (value) {
+                                setState(
+                                  () {
+                                    rescued =
+                                        value == "Recuperado" ? true : false;
+                                  },
+                                );
+                              }),
+                        ],
+                      ),
                     ),
                     TextField(
                       readOnly: true,
                       decoration: InputDecoration(
+                          border: InputBorder.none,
                           hintText: lat != ''
                               ? 'Ubicación actual: $lat $long'
                               : 'No location data'),
@@ -359,7 +379,6 @@ class EditPostState extends State<EditPost> {
                         onPressed: () {
 //hago check de los parametros que quiero comprobar
                           if (category.isNotEmpty &&
-                              description != "" &&
                               selectedLocacion != "" &&
                               selectedYacimiento != "") {
                             return uploadUserPost();

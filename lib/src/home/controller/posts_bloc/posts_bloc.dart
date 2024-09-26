@@ -16,7 +16,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         final posts = await _firestoreService.getPosts(event.name, true).first;
         emit(PostsLoaded(posts));
       } catch (e) {
-        emit(PostsError('Failed to load todos.'));
+        emit(PostsError(e.toString()));
       }
     });
 
