@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
-import 'package:novedades_de_campo/src/home/controller/field_controller.dart';
-import 'package:novedades_de_campo/src/home/controller/posts_bloc/posts_bloc.dart';
+import 'package:i_am_single/src/home/controller/field_controller.dart';
+import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
 
-import 'package:novedades_de_campo/src/home/view/field_view/create_image.dart';
-import 'package:novedades_de_campo/src/home/view/home_view/search_screen.dart';
-import 'package:novedades_de_campo/src/home/view/maps_views/maps_controller.dart';
+import 'package:i_am_single/src/home/view/field_view/create_image.dart';
+import 'package:i_am_single/src/home/view/home_view/search_screen.dart';
+import 'package:i_am_single/src/home/view/maps_views/maps_controller.dart';
 
-import 'package:novedades_de_campo/src/home/view/maps_views/maps_main_view.dart';
+import 'package:i_am_single/src/home/view/maps_views/maps_main_view.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
             backgroundColor: Colors.greenAccent,
             title: Center(
               child: Text(
-                'Logistica de campo',
+                'I am Single',
                 style: TextStyle(color: Colors.blueGrey[800], fontSize: 24),
               ),
             ),

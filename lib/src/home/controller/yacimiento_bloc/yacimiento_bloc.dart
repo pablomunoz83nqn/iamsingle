@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
-import 'package:novedades_de_campo/src/home/controller/yacimiento_controller.dart';
-import 'package:novedades_de_campo/src/home/model/yacimiento_model.dart';
+import 'package:i_am_single/src/home/controller/yacimiento_controller.dart';
+import 'package:i_am_single/src/home/model/yacimiento_model.dart';
 
 part 'yacimiento_event.dart';
 part 'yacimiento_state.dart';

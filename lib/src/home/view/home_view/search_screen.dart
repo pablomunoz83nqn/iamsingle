@@ -1,8 +1,8 @@
 import 'package:drop_down_search_field/drop_down_search_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:novedades_de_campo/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
-import 'package:novedades_de_campo/src/home/model/yacimiento_model.dart';
+import 'package:i_am_single/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
+import 'package:i_am_single/src/home/model/yacimiento_model.dart';
 
 class SearchScreen extends StatefulWidget {
   Function(String) onApply;
@@ -110,7 +110,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       ),
       itemBuilder: (context, Yacimiento? suggestion) {
-        Color _colorizedSuggesion = _dropdownSearchFieldController.text != ""
+        Color colorizedSuggesion = _dropdownSearchFieldController.text != ""
             ? suggestion!.name
                     .toLowerCase()
                     .contains(_dropdownSearchFieldController.text)
@@ -142,7 +142,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: const EdgeInsets.only(bottom: 10.0, left: 5.0),
                   child: Text(
                     suggestion!.name,
-                    style: TextStyle(fontSize: 17, color: _colorizedSuggesion),
+                    style: TextStyle(fontSize: 17, color: colorizedSuggesion),
                   ),
                 ),
               ],

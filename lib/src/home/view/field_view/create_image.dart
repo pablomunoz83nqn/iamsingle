@@ -12,11 +12,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-import 'package:novedades_de_campo/src/home/controller/field_controller.dart';
-import 'package:novedades_de_campo/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
-import 'package:novedades_de_campo/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
+import 'package:i_am_single/src/home/controller/field_controller.dart';
+import 'package:i_am_single/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
+import 'package:i_am_single/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
 
 class CreateImagePost extends StatefulWidget {
+  const CreateImagePost({super.key});
+
   @override
   _CreateImagePostState createState() => _CreateImagePostState();
 }
@@ -299,7 +301,7 @@ class _CreateImagePostState extends State<CreateImagePost> {
                                         ),
                                       ))
                                   .toList())
-                          : Text("Agregue elementos"),
+                          : const Text("Agregue elementos"),
                     ),
                     const SizedBox(height: 25.0),
                     _descripcionWidget(),

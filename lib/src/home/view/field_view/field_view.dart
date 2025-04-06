@@ -1,14 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:novedades_de_campo/src/home/controller/posts_bloc/posts_bloc.dart';
-import 'package:novedades_de_campo/src/home/model/posts_model.dart';
-import 'package:novedades_de_campo/src/home/model/yacimiento_model.dart';
-import 'package:novedades_de_campo/src/home/view/field_view/create_image.dart';
-import 'package:novedades_de_campo/src/home/view/field_view/post_file_widget.dart';
-import 'package:novedades_de_campo/src/home/view/home_view/search_screen.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
+import 'package:i_am_single/src/home/model/posts_model.dart';
+
+import 'package:i_am_single/src/home/view/field_view/create_image.dart';
+import 'package:i_am_single/src/home/view/field_view/post_file_widget.dart';
+import 'package:i_am_single/src/home/view/home_view/search_screen.dart';
 
 class FieldView extends StatefulWidget {
   final Object parametros;
@@ -128,36 +125,6 @@ class FieldViewState extends State<FieldView> {
                   },
                 ),
               ),
-
-              //Initialize the chart widget
-              Container(
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20)),
-                height: MediaQuery.of(context).size.height / 4,
-                child: SfCartesianChart(
-                    primaryXAxis: CategoryAxis(),
-                    // Chart title
-                    title: ChartTitle(text: 'Resumen consolidado'),
-                    // Enable legend
-                    legend: Legend(isVisible: true),
-                    // Enable tooltip
-                    tooltipBehavior: TooltipBehavior(enable: true),
-                    series: <CartesianSeries<Map<String, dynamic>, String>>[
-                      LineSeries<Map<String, dynamic>, String>(
-                          dataSource: listadoElementos.entries
-                              .map((e) => {'name': e.key, 'value': e.value})
-                              .toList(),
-                          xValueMapper: (Map<String, dynamic> element, _) =>
-                              element['name'].toString(),
-                          yValueMapper: (Map<String, dynamic> element2, _) =>
-                              element2['value'],
-                          name: 'Elementos en campo',
-                          // Enable data label
-                          dataLabelSettings: DataLabelSettings(isVisible: true))
-                    ]),
-              ),
-
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Container(

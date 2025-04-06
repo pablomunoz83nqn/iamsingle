@@ -1,16 +1,15 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluster/fluster.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:novedades_de_campo/src/home/controller/posts_bloc/posts_bloc.dart';
-import 'package:novedades_de_campo/src/home/model/maps_marker_model.dart';
-import 'package:novedades_de_campo/src/home/model/posts_model.dart';
+import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
+import 'package:i_am_single/src/home/model/maps_marker_model.dart';
+import 'package:i_am_single/src/home/model/posts_model.dart';
 
-import 'package:novedades_de_campo/src/home/view/maps_views/widgets/maps_helpers.dart';
+import 'package:i_am_single/src/home/view/maps_views/widgets/maps_helpers.dart';
 
 class MapsPage extends StatefulWidget {
   final String yacimiento;

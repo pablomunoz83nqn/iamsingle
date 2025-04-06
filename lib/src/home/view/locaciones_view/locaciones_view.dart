@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:novedades_de_campo/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
-import 'package:novedades_de_campo/src/home/model/locaciones_model.dart';
+import 'package:i_am_single/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
+import 'package:i_am_single/src/home/model/locaciones_model.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);

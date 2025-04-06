@@ -1,19 +1,19 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:novedades_de_campo/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
-import 'package:novedades_de_campo/src/home/controller/locaciones_controller.dart';
-import 'package:novedades_de_campo/src/home/controller/posts_bloc/posts_bloc.dart';
-import 'package:novedades_de_campo/src/home/controller/posts_controller.dart';
-import 'package:novedades_de_campo/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
-import 'package:novedades_de_campo/src/home/controller/yacimiento_controller.dart';
-import 'package:novedades_de_campo/src/home/model/posts_model.dart';
-import 'package:novedades_de_campo/src/home/view/field_view/edit_post.dart';
-import 'package:novedades_de_campo/src/home/view/field_view/field_view.dart';
+import 'package:i_am_single/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
+import 'package:i_am_single/src/home/controller/locaciones_controller.dart';
+import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
+import 'package:i_am_single/src/home/controller/posts_controller.dart';
+import 'package:i_am_single/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
+import 'package:i_am_single/src/home/controller/yacimiento_controller.dart';
+import 'package:i_am_single/src/home/model/posts_model.dart';
+import 'package:i_am_single/src/home/view/field_view/edit_post.dart';
+import 'package:i_am_single/src/home/view/field_view/field_view.dart';
 
 // Import the firebase_core plugin
 
-import 'package:novedades_de_campo/src/home/view/home_view/home_admin_view.dart';
+import 'package:i_am_single/src/home/view/home_view/home_admin_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
 // Remove the debug banner
       debugShowCheckedModeBanner: true,
-      title: 'Material en campo',
+      title: 'I am Single',
       theme: ThemeData(
         primarySwatch: Colors.red,
       ),
@@ -65,7 +65,7 @@ class MyApp extends StatelessWidget {
       return _buildRoute(settings, EditPost(post: settings.arguments as Posts));
     }
 
-    return _buildRoute(settings, MyHomePage());
+    return _buildRoute(settings, const MyHomePage());
   }
 
   MaterialPageRoute _buildRoute(RouteSettings settings, Widget builder) {

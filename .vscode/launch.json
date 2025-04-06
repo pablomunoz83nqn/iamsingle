@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "novedades_de_campo",
+            "name": "i_am_single",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "novedades_de_campo (profile mode)",
+            "name": "i_am_single (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "novedades_de_campo (release mode)",
+            "name": "i_am_single (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

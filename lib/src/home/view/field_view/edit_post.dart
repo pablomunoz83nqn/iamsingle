@@ -13,11 +13,11 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-import 'package:novedades_de_campo/src/home/controller/field_controller.dart';
-import 'package:novedades_de_campo/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
-import 'package:novedades_de_campo/src/home/controller/posts_bloc/posts_bloc.dart';
-import 'package:novedades_de_campo/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
-import 'package:novedades_de_campo/src/home/model/posts_model.dart';
+import 'package:i_am_single/src/home/controller/field_controller.dart';
+
+import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
+import 'package:i_am_single/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
+import 'package:i_am_single/src/home/model/posts_model.dart';
 
 class EditPost extends StatefulWidget {
   final Posts post;
@@ -311,7 +311,7 @@ class EditPostState extends State<EditPost> {
                                               width: 5,
                                             ),
                                             Text(category[key].toString()),
-                                            SizedBox(
+                                            const SizedBox(
                                               width: 20,
                                             ),
                                             IconButton(
@@ -319,12 +319,12 @@ class EditPostState extends State<EditPost> {
                                                   category.remove(key);
                                                   setState(() {});
                                                 },
-                                                icon: Icon(Icons.remove))
+                                                icon: const Icon(Icons.remove))
                                           ],
                                         ),
                                       ))
                                   .toList())
-                          : Text("Agregue elementos"),
+                          : const Text("Agregue elementos"),
                     ),
                     const SizedBox(height: 25.0),
                     _descripcionWidget(),

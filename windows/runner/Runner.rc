@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "novedades_de_campo" "\0"
+            VALUE "FileDescription", "i_am_single" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "novedades_de_campo" "\0"
+            VALUE "InternalName", "i_am_single" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2022 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "novedades_de_campo.exe" "\0"
-            VALUE "ProductName", "novedades_de_campo" "\0"
+            VALUE "OriginalFilename", "i_am_single.exe" "\0"
+            VALUE "ProductName", "i_am_single" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

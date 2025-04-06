@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
-import 'package:novedades_de_campo/src/home/controller/posts_controller.dart';
-import 'package:novedades_de_campo/src/home/model/posts_model.dart';
+import 'package:i_am_single/src/home/controller/posts_controller.dart';
+import 'package:i_am_single/src/home/model/posts_model.dart';
 
 part 'posts_event.dart';
 part 'posts_state.dart';

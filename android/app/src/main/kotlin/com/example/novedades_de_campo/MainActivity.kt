@@ -1,4 +1,4 @@
-package com.example.novedades_de_campo
+package com.app.iamsingle
 
 import io.flutter.embedding.android.FlutterActivity
 

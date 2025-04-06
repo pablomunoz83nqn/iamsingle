@@ -1,66 +1,26 @@
 {
   "project_info": {
-    "project_number": "669371784924",
-    "firebase_url": "https://novedades-de-campo-tecpetrol.firebaseio.com",
-    "project_id": "novedades-de-campo-tecpetrol",
-    "storage_bucket": "novedades-de-campo-tecpetrol.appspot.com"
+    "project_number": "212601785374",
+    "project_id": "i-am-single-95347",
+    "storage_bucket": "i-am-single-95347.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:669371784924:android:5e345423606a6b829a5e19",
+        "mobilesdk_app_id": "1:212601785374:android:9c681d5be25e196607720f",
         "android_client_info": {
-          "package_name": "com.example.blog_app"
+          "package_name": "com.app.iamsingle"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "669371784924-0tg1g3umeu75gc9tiba5um0i67uhiekp.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA3zXoO7fOsuWcbQOY1Vrb-XKwzpmKvPbc"
+          "current_key": "AIzaSyBsRYcdWc8s2h38z52Zo_iFmnLDblYo_Ok"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "669371784924-0tg1g3umeu75gc9tiba5um0i67uhiekp.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:669371784924:android:b9a99ca0a5445ac09a5e19",
-        "android_client_info": {
-          "package_name": "com.example.novedades_campo"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "669371784924-0tg1g3umeu75gc9tiba5um0i67uhiekp.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyA3zXoO7fOsuWcbQOY1Vrb-XKwzpmKvPbc"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "669371784924-0tg1g3umeu75gc9tiba5um0i67uhiekp.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

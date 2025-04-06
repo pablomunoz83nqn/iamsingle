@@ -1,12 +1,12 @@
 import 'package:expandable/expandable.dart';
 
 import 'package:flutter/material.dart';
-import 'package:novedades_de_campo/src/home/model/posts_model.dart';
+import 'package:i_am_single/src/home/model/posts_model.dart';
 
 class PostTile extends StatefulWidget {
   final Posts post;
 
-  PostTile({required this.post});
+  const PostTile({super.key, required this.post});
 
   @override
   State<PostTile> createState() => _PostTileState();

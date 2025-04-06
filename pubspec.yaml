@@ -1,4 +1,4 @@
-name: novedades_de_campo
+name: i_am_single
 description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
@@ -28,7 +28,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   cloud_firestore: ^4.8.5
-  drop_down_search_field: ^1.0.4
+  drop_down_search_field: ^1.1.2+2
   expandable: ^5.0.1
   flutter:
     sdk: flutter
@@ -45,7 +45,7 @@ dependencies:
   lottie: ^2.1.0
   path: ^1.8.1
   # permission: ^0.1.7
-  syncfusion_flutter_charts: ^25.1.42+1
+  
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -56,6 +56,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+dependency_overrides:
+  geolocator_android: 4.6.1
+  
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
