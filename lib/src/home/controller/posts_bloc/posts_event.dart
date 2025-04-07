@@ -16,13 +16,13 @@ class LoadOnFieldPosts extends PostsEvent {
 }
 
 class AddPosts extends PostsEvent {
-  final Posts posts;
+  final Profile posts;
 
   AddPosts(this.posts);
 }
 
 class UpdatePosts extends PostsEvent {
-  final Posts posts;
+  final Profile posts;
 
   UpdatePosts(this.posts);
 }

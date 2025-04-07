@@ -9,39 +9,33 @@ class FirestoreServiceUsers {
     return usersCollection.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        print(data);
         return Users(
-          id: doc.id,
           email: data['email'],
-          name: data['name'],
-          password: data['password'],
-          status: data['status'],
-          uid: data['uid'],
+          lat: data['lat'],
+          long: data['long'],
         );
       }).toList();
     });
   }
 
-  Future<void> addUsers(Users user) {
+  Future<void> addUser(Users user) {
     return usersCollection.add({
       'email': user.email,
-      'name': user.name,
-      'password': user.password,
-      'status': user.status,
-      'uid': user.uid,
+      'lat': user.lat,
+      'long': user.long,
     });
   }
 
-  Future<void> updateUsers(Users user) {
-    return usersCollection.doc(user.id).update({
+  Future<void> updateUser(Users user) {
+    return usersCollection.doc(user.email).update({
       'email': user.email,
-      'name': user.name,
-      'password': user.password,
-      'status': user.status,
-      'uid': user.uid,
+      'lat': user.lat,
+      'long': user.long,
     });
   }
 
-  Future<void> deleteUsers(String user) {
+  Future<void> deleteUser(String user) {
     return usersCollection.doc(user).delete();
   }
 }

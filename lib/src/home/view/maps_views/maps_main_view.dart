@@ -6,8 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
+import 'package:i_am_single/src/home/controller/users_bloc/users_bloc.dart';
 import 'package:i_am_single/src/home/model/maps_marker_model.dart';
-import 'package:i_am_single/src/home/model/posts_model.dart';
+
+import 'package:i_am_single/src/home/model/users_model.dart';
 
 import 'package:i_am_single/src/home/view/maps_views/widgets/maps_helpers.dart';
 
@@ -23,7 +25,7 @@ class _MapsPageState extends State<MapsPage> {
   final Completer<GoogleMapController> _mapController = Completer();
 
   final List<LatLng> markerLocations = [];
-  List<Posts> originalPostsList = [];
+  List<Users> originalUsersList = [];
 
   /// Set of displayed markers and cluster markers on the map
   final Set<Marker> _markers = {};
@@ -134,21 +136,21 @@ class _MapsPageState extends State<MapsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PostsBloc, PostsState>(builder: (context, state) {
-      if (state is PostsLoading) {
+    return BlocBuilder<UsersBloc, UsersState>(builder: (context, state) {
+      if (state is UsersLoading) {
         return const Center(child: CircularProgressIndicator());
-      } else if (state is PostsLoaded) {
+      } else if (state is UsersLoaded) {
 //Seteo un if para que no se repitan los posts
-        if (originalPostsList != state.posts) {
-          originalPostsList.clear();
+        if (originalUsersList != state.users) {
+          originalUsersList.clear();
           markerLocations.clear();
-          originalPostsList = state.posts;
+          originalUsersList = state.users;
 
-          for (var element in originalPostsList) {
+          for (var element in originalUsersList) {
             markerLocations.add(
               LatLng(
-                double.parse(element.lat),
-                double.parse(element.long),
+                element.lat,
+                element.long,
               ),
             );
           }
@@ -196,10 +198,10 @@ class _MapsPageState extends State<MapsPage> {
               ),
           ],
         );
-      } else if (state is PostsOperationSuccess) {
-        //postsBloc.add(LoadPosts()); // Reload todos
+      } else if (state is UsersOperationSuccess) {
+        //postsBloc.add(LoadUsers()); // Reload todos
         return Container(); // Or display a success message
-      } else if (state is PostsError) {
+      } else if (state is UsersError) {
         return Center(child: Text(state.errorMessage));
       } else {
         return Container();

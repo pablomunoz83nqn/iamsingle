@@ -16,14 +16,14 @@ import 'package:i_am_single/src/home/controller/field_controller.dart';
 import 'package:i_am_single/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
 import 'package:i_am_single/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
 
-class CreateImagePost extends StatefulWidget {
-  const CreateImagePost({super.key});
+class UpdateProfile extends StatefulWidget {
+  const UpdateProfile({super.key});
 
   @override
-  _CreateImagePostState createState() => _CreateImagePostState();
+  _UpdateProfileState createState() => _UpdateProfileState();
 }
 
-class _CreateImagePostState extends State<CreateImagePost> {
+class _UpdateProfileState extends State<UpdateProfile> {
   Position? position;
   var selectedYacimiento;
   var selectedLocacion;

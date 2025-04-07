@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
-import 'package:i_am_single/src/home/model/posts_model.dart';
+import 'package:i_am_single/src/home/model/profile_model.dart';
 
-import 'package:i_am_single/src/home/view/field_view/create_image.dart';
+import 'package:i_am_single/src/home/view/field_view/update_profile.dart';
 import 'package:i_am_single/src/home/view/field_view/post_file_widget.dart';
 import 'package:i_am_single/src/home/view/home_view/search_screen.dart';
 
@@ -155,20 +155,16 @@ class FieldViewState extends State<FieldView> {
                     return Visibility(
                       visible: listForFilter.contains(true),
                       child: PostTile(
-                          post: Posts(
+                          post: Profile(
                         imgURL: state.posts[index].imgURL,
                         description: state.posts[index].description,
-                        location: state.posts[index].location,
                         id: state.posts[index].id,
                         name: state.posts[index].name,
                         lat: state.posts[index].lat,
                         long: state.posts[index].long,
                         uploadedBy: '',
                         category: state.posts[index].category,
-                        field: '',
-                        date: state.posts[index].date,
-                        modifiedBy: '',
-                        rescued: state.posts[index].rescued,
+                        email: '',
                       )),
                     );
                   },
@@ -196,7 +192,7 @@ class FieldViewState extends State<FieldView> {
             FloatingActionButton.extended(
               onPressed: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => CreateImagePost()));
+                    MaterialPageRoute(builder: (context) => UpdateProfile()));
               },
               icon: const Icon(Icons.add_a_photo),
               label: const Text("Nuevo registro"),
@@ -212,9 +208,7 @@ class FieldViewState extends State<FieldView> {
   void searchItem(String query, Map<String, int> listadoElementos) {
     List<String> listado = listadoElementos.entries.map((u) => u.key).toList();
     if (query == "") {
-      setState(() {
-        sugerencias = "";
-      });
+      sugerencias = "";
     } else {
       sugerencias = "";
 

@@ -1,10 +1,10 @@
 import 'package:expandable/expandable.dart';
 
 import 'package:flutter/material.dart';
-import 'package:i_am_single/src/home/model/posts_model.dart';
+import 'package:i_am_single/src/home/model/profile_model.dart';
 
 class PostTile extends StatefulWidget {
-  final Posts post;
+  final Profile post;
 
   const PostTile({super.key, required this.post});
 

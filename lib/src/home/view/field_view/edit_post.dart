@@ -17,10 +17,10 @@ import 'package:i_am_single/src/home/controller/field_controller.dart';
 
 import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
 import 'package:i_am_single/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
-import 'package:i_am_single/src/home/model/posts_model.dart';
+import 'package:i_am_single/src/home/model/profile_model.dart';
 
 class EditPost extends StatefulWidget {
-  final Posts post;
+  final Profile post;
 
   @override
   const EditPost({Key? key, required this.post}) : super(key: key);
@@ -44,8 +44,8 @@ class EditPostState extends State<EditPost> {
   String caption = '';
   String location = '';
   String name = '';
-  String lat = '';
-  String long = '';
+  double lat = 0.0;
+  double long = 0.0;
   String description = '';
   String uploadedBy = '';
   Map<String, dynamic> category = {};
@@ -62,7 +62,7 @@ class EditPostState extends State<EditPost> {
   @override
   void initState() {
     selectedYacimiento = widget.post.name;
-    selectedLocacion = widget.post.location;
+
     category = widget.post.category;
 
     textController = TextEditingController();
@@ -90,8 +90,8 @@ class EditPostState extends State<EditPost> {
 
     setState(() {
       position = position;
-      lat = position.latitude.toString();
-      long = position.longitude.toString();
+      lat = position.latitude;
+      long = position.longitude;
     });
   }
 
@@ -136,31 +136,28 @@ class EditPostState extends State<EditPost> {
         });
         debugPrint('File URL = $_uploadedImageURL');
 
-        Posts userPostDetails = uploadPostMethod(true);
+        Profile userPostDetails = uploadPostMethod(true);
         BlocProvider.of<PostsBloc>(context).add(UpdatePosts(userPostDetails));
       });
     } else {
-      Posts userPostDetails = uploadPostMethod(false);
+      Profile userPostDetails = uploadPostMethod(false);
       BlocProvider.of<PostsBloc>(context).add(UpdatePosts(userPostDetails));
     }
     Navigator.pushNamed(context, "/");
   }
 
-  Posts uploadPostMethod(bool gotImage) {
-    Posts userPostDetails = Posts(
+  Profile uploadPostMethod(bool gotImage) {
+    Profile userPostDetails = Profile(
+      id: widget.post.id,
       imgURL: gotImage ? _uploadedImageURL : widget.post.imgURL,
       //caption: caption,
-      location: selectedLocacion,
+
       name: selectedYacimiento,
       lat: lat,
       long: long,
       description: description,
       uploadedBy: uploadedBy,
-      category: category,
-      field: field,
-      date: DateTime.now().toString(),
-      modifiedBy: modifiedBy,
-      rescued: rescued, id: widget.post.id,
+      category: category, email: '',
     );
     return userPostDetails;
   }

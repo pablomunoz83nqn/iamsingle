@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:i_am_single/src/home/model/posts_model.dart';
+import 'package:i_am_single/src/home/model/profile_model.dart';
+import 'package:i_am_single/src/home/model/users_model.dart';
 
 class FirestoreServicePosts {
   final CollectionReference _postsCollection =
       FirebaseFirestore.instance.collection('posts');
 
-  Stream<List<Posts>> getPosts(String name, bool rescued) {
+  Stream<List<Profile>> getPosts(String name, bool rescued) {
     return (name == ""
             ? _postsCollection
             : _postsCollection
@@ -16,7 +17,7 @@ class FirestoreServicePosts {
         .map((snapshot) {
       return snapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        return Posts(
+        return Profile(
           id: doc.id,
           name: data['name'],
           imgURL: data['imgURL'],
@@ -25,17 +26,13 @@ class FirestoreServicePosts {
           description: data['description'],
           uploadedBy: data['uploadedBy'],
           category: data['category'],
-          location: data['location'],
-          field: data['field'],
-          date: data['date'],
-          modifiedBy: data['modifiedBy'],
-          rescued: data['rescued'],
+          email: data['email'],
         );
       }).toList();
     });
   }
 
-  Future<void> addPosts(Posts post) {
+  Future<void> addPosts(Profile post) {
     return _postsCollection.add({
       'id': post.id,
       "imgURL": post.imgURL,
@@ -45,14 +42,10 @@ class FirestoreServicePosts {
       "description": post.description,
       "uploadedBy": post.uploadedBy,
       "category": post.category,
-      'location': post.location,
-      'field': post.field,
-      'date': post.date,
-      'modifiedBy': post.modifiedBy,
     });
   }
 
-  Future<void> updatePosts(Posts post) async {
+  Future<void> updatePosts(Profile post) async {
     return _postsCollection.doc(post.id).update({
       'id': post.id,
       "imgURL": post.imgURL,
@@ -62,10 +55,6 @@ class FirestoreServicePosts {
       "description": post.description,
       "uploadedBy": post.uploadedBy,
       "category": post.category,
-      'location': post.location,
-      'field': post.field,
-      'date': post.date,
-      'modifiedBy': post.modifiedBy,
     });
   }
 

@@ -1,18 +1,28 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:i_am_single/src/home/controller/users_bloc/users_bloc.dart';
+
+import 'package:i_am_single/src/home/model/users_model.dart';
+import 'package:i_am_single/src/home/view/login_register/auth.dart';
+
 import 'package:lottie/lottie.dart';
 import 'package:i_am_single/src/home/controller/field_controller.dart';
 import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
 
-import 'package:i_am_single/src/home/view/field_view/create_image.dart';
-import 'package:i_am_single/src/home/view/home_view/search_screen.dart';
+import 'package:i_am_single/src/home/view/field_view/update_profile.dart';
+
 import 'package:i_am_single/src/home/view/maps_views/maps_controller.dart';
 
 import 'package:i_am_single/src/home/view/maps_views/maps_main_view.dart';
 
 class MyHomePage extends StatefulWidget {
+  final String email;
+
   const MyHomePage({
     Key? key,
+    required this.email,
   }) : super(key: key);
 
   @override
@@ -23,39 +33,69 @@ class _MyHomePageState extends State<MyHomePage> {
   late final HomeViewController controller;
   late final MapsController mapController;
   String selectedYacimiento = "";
+  final User? user = Auth().currentUser;
+  double lat = 0.0;
+  double long = 0.0;
+
+  late Users userInfo;
 
   @override
   void initState() {
     super.initState();
     controller = HomeViewController(context);
     mapController = MapsController(context);
-    BlocProvider.of<PostsBloc>(context).add(LoadRescuedPosts(""));
-    BlocProvider.of<PostsBloc>(context).add(LoadOnFieldPosts(""));
+
+    getCurrentPosition();
+  }
+
+  getCurrentPosition() async {
+    Position position = await _determinePosition();
+
+    setState(() {
+      position = position;
+      lat = position.latitude;
+      long = position.longitude;
+    });
+
+    userInfo = Users(email: widget.email, lat: lat, long: long);
+
+    BlocProvider.of<UsersBloc>(context).add(UpdateUser(userInfo));
+  }
+
+  Future<Position> _determinePosition() async {
+    LocationPermission permission;
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately.
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+// When we reach here, permissions are granted and we can
+    // continue accessing the position of the device.
+    return await Geolocator.getCurrentPosition();
+  }
+
+  Future<void> signOut() async {
+    await Auth().signOut();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PostsBloc, PostsState>(builder: (context, state) {
-      if (state is PostsLoading) {
+    return BlocBuilder<UsersBloc, UsersState>(builder: (context, state) {
+      if (state is UsersLoading) {
         return const Center(child: CircularProgressIndicator());
-      } else if (state is PostsLoaded) {
-        int numEnCampo = 0;
-        int numRecuperados = 0;
-
-        for (var item in state.posts) {
-          if (!item.rescued) {
-            numEnCampo++;
-          } else {
-            numRecuperados++;
-          }
-        }
+      } else if (state is UsersLoaded) {
+        int numEnCampo = state.users.length;
 
         return Scaffold(
+          drawer: drawerMenu(),
           appBar: AppBar(
-            leading: Icon(
-              Icons.menu,
-              color: Colors.blueGrey[800],
-            ),
             backgroundColor: Colors.greenAccent,
             title: Center(
               child: Text(
@@ -69,21 +109,21 @@ class _MyHomePageState extends State<MyHomePage> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  SearchScreen(
+                  /* SearchScreen(
                     selectedYacimiento: selectedYacimiento,
                     onApply: (String name) {
                       selectedYacimiento = name;
-                      BlocProvider.of<PostsBloc>(context)
-                          .add(LoadRescuedPosts(name));
-                      BlocProvider.of<PostsBloc>(context)
-                          .add(LoadOnFieldPosts(name));
+                      BlocProvider.of<UsersBloc>(context)
+                          .add(LoadRescuedUsers(name));
+                      BlocProvider.of<UsersBloc>(context)
+                          .add(LoadOnFieldUsers(name));
                     },
-                  ),
+                  ), */
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        'Resumen de campo',
+                        'Vista general',
                         style: TextStyle(
                             color: Colors.blueGrey[600],
                             fontSize: 24,
@@ -94,18 +134,16 @@ class _MyHomePageState extends State<MyHomePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      materialCard(context, '/field', numEnCampo,
-                          'Lotes en campo', 'assets/lottie/campo.json', false),
                       materialCard(
                           context,
-                          '/store',
-                          numRecuperados,
-                          'Lotes recuperados',
-                          'assets/lottie/deposito.json',
-                          true),
+                          '/field',
+                          numEnCampo,
+                          'Solteros en la zona',
+                          'assets/lottie/campo.json',
+                          false),
                     ],
                   ),
-                  mapWidget(context),
+                  mapWidget(context, lat, long),
                 ],
               ),
             ),
@@ -114,22 +152,50 @@ class _MyHomePageState extends State<MyHomePage> {
               FloatingActionButtonLocation.centerDocked,
           floatingActionButton: FloatingActionButton(
             onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => CreateImagePost()));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const UpdateProfile()));
             },
             tooltip: 'Agregar nuevo',
             child: const Icon(Icons.add),
           ),
         );
-      } else if (state is PostsOperationSuccess) {
+      } else if (state is UsersOperationSuccess) {
         return const Center(child: CircularProgressIndicator());
       } else {
-        return const Center(child: Text("Error en carga de base de datos"));
+        return const Center(child: LinearProgressIndicator());
       }
     });
   }
 
-  Widget mapWidget(BuildContext context) {
+  Widget drawerMenu() {
+    return Drawer(
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const DrawerHeader(
+            child: Text(
+              "Firebase Auth",
+              style: TextStyle(fontSize: 24),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: Text(user?.email ?? "User email"),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text("Sign Out"),
+            onTap: signOut,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget mapWidget(BuildContext context, double lati, double longi) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: ClipRRect(
@@ -138,7 +204,9 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         child: SizedBox(
           height: MediaQuery.of(context).size.height / 2,
-          child: MapsPage(yacimiento: selectedYacimiento),
+          child: MapsPage(
+            yacimiento: selectedYacimiento,
+          ),
         ),
       ),
     );

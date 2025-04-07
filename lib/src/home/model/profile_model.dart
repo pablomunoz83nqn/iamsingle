@@ -1,20 +1,17 @@
-class Posts {
+class Profile {
   String id;
   String imgURL;
+  String email;
   String name;
-  String lat;
-  String long;
+  double lat;
+  double long;
   String description;
   String uploadedBy;
   Map<String, dynamic> category;
-  String location;
-  String field;
-  String date;
-  String modifiedBy;
-  bool rescued;
 
-  Posts({
+  Profile({
     required this.imgURL,
+    required this.email,
     required this.id,
     required this.name,
     required this.lat,
@@ -22,31 +19,22 @@ class Posts {
     required this.description,
     required this.uploadedBy,
     required this.category,
-    required this.location,
-    required this.field,
-    required this.date,
-    required this.modifiedBy,
-    required this.rescued,
   });
 
-  Posts copyWith({
+  Profile copyWith({
     String? id,
     String? imgURL,
     String? name,
-    String? lat,
-    String? long,
+    String? email,
+    double? lat,
+    double? long,
     String? description,
     String? uploadedBy,
     Map<String, dynamic>? category,
-    String? location,
-    String? field,
-    String? date,
-    String? modifiedBy,
-    bool? rescued,
   }) {
-    return Posts(
+    return Profile(
       id: id ?? this.id,
-      rescued: rescued ?? this.rescued,
+      email: email ?? this.email,
       imgURL: imgURL ?? this.imgURL,
       name: name ?? this.name,
       lat: lat ?? this.lat,
@@ -54,10 +42,6 @@ class Posts {
       description: description ?? this.description,
       uploadedBy: uploadedBy ?? this.uploadedBy,
       category: category ?? this.category,
-      location: location ?? this.location,
-      field: field ?? this.field,
-      date: date ?? this.date,
-      modifiedBy: modifiedBy ?? this.modifiedBy,
     );
   }
 }
