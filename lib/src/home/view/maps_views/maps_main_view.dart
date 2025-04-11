@@ -149,8 +149,8 @@ class _MapsPageState extends State<MapsPage> {
           for (var element in originalUsersList) {
             markerLocations.add(
               LatLng(
-                element.lat,
-                element.long,
+                element.lat!,
+                element.long!,
               ),
             );
           }

@@ -21,10 +21,10 @@ class AddUser extends UsersEvent {
   AddUser(this.users);
 }
 
-class UpdateUser extends UsersEvent {
+class UpdatePosition extends UsersEvent {
   final Users user;
 
-  UpdateUser(this.user);
+  UpdatePosition(this.user);
 }
 
 class DeleteUser extends UsersEvent {

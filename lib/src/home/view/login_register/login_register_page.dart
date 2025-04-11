@@ -53,14 +53,8 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
   }
 
   Future<void> createUserWithEmailAndPassword() async {
-    try {
-      await Auth().createUserWithEmailAndPassword(
-          email: _controllerEmail.text, password: _controllerPassword.text);
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        errorMessage = e.message;
-      });
-    }
+    Navigator.popAndPushNamed(context, '/register');
+    /* */
   }
 
   Widget _title() {
@@ -90,6 +84,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
     return TextButton(
         onPressed: () => setState(() {
               isLogin = !isLogin;
+              createUserWithEmailAndPassword();
             }),
         child:
             Text(isLogin ? "No tienes cuenta? Registrate" : "Iniciar Sesión"));

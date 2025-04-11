@@ -33,10 +33,10 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
       }
     });
 
-    on<UpdateUser>((event, emit) async {
+    on<UpdatePosition>((event, emit) async {
       try {
         emit(UsersLoading());
-        await _firestoreService.updateUser(event.user);
+        await _firestoreService.updatePosition(event.user);
         emit(UsersOperationSuccess('Users updated successfully.'));
         emit(UsersLoading());
         final posts = await _firestoreService.getUsers().first;

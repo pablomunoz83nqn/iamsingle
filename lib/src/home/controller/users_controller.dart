@@ -14,24 +14,34 @@ class FirestoreServiceUsers {
           email: data['email'],
           lat: data['lat'],
           long: data['long'],
+          name: data['name'],
+          lastName: data['lastName'],
+          age: data['age'],
+          birthDate: data['birthDate'],
+          gender: data['gender'],
         );
       }).toList();
     });
   }
 
-  Future<void> addUser(Users user) {
-    return usersCollection.add({
-      'email': user.email,
-      'lat': user.lat,
-      'long': user.long,
+  Future<void> updatePosition(Users user) {
+    return usersCollection.doc(user.email).update({
+      'lat': user.lat ?? user.lat,
+      'long': user.long ?? user.long,
     });
   }
 
-  Future<void> updateUser(Users user) {
-    return usersCollection.doc(user.email).update({
-      'email': user.email,
-      'lat': user.lat,
-      'long': user.long,
+  Future<void> addUser(Users user) {
+    //return usersCollection.add  ({
+    return usersCollection.doc(user.email).set({
+      'email': user.email ?? user.email,
+      'name': user.name ?? user.name,
+      'lastName': user.lastName ?? user.lastName,
+      'age': user.age ?? user.age,
+      'birthDate': user.birthDate ?? user.birthDate,
+      'gender': user.gender ?? user.gender,
+      'lat': user.lat ?? user.lat,
+      'long': user.long ?? user.long,
     });
   }
 

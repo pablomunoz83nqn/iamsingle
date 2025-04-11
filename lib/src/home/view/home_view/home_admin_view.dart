@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     userInfo = Users(email: widget.email, lat: lat, long: long);
 
-    BlocProvider.of<UsersBloc>(context).add(UpdateUser(userInfo));
+    BlocProvider.of<UsersBloc>(context).add(UpdatePosition(userInfo));
   }
 
   Future<Position> _determinePosition() async {

@@ -16,6 +16,7 @@ import 'package:i_am_single/src/home/view/field_view/field_view.dart';
 // Import the firebase_core plugin
 
 import 'package:i_am_single/src/home/view/home_view/home_admin_view.dart';
+import 'package:i_am_single/src/home/view/login_register/register_form.dart';
 import 'package:i_am_single/src/home/view/login_register/widget_tree.dart';
 
 Future<void> main() async {
@@ -71,7 +72,9 @@ class MyApp extends StatelessWidget {
       return _buildRoute(
           settings, EditPost(post: settings.arguments as Profile));
     }
-
+    if (settings.name == '/register') {
+      return _buildRoute(settings, RegisterFormScreen());
+    }
     return _buildRoute(settings, const WidgetTree());
   }
 
