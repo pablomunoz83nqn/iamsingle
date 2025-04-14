@@ -65,5 +65,18 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
         emit(UsersError('Failed to delete todo.'));
       }
     });
+
+    /* Future<void> _onLoadProfileViews(
+      LoadProfileViews event,
+      Emitter<UsersState> emit,
+    ) async {
+      emit(ProfileViewsLoading());
+      try {
+        final viewers = await _firestoreService.getProfileViewers(event.email);
+        emit(ProfileViewsLoaded(viewers));
+      } catch (e) {
+        emit(ProfileViewsError('Error al cargar las visitas: $e'));
+      }
+    } */
   }
 }

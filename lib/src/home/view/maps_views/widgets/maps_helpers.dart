@@ -13,6 +13,47 @@ import 'package:i_am_single/src/home/model/maps_marker_model.dart';
 /// In here we are encapsulating all the logic required to get marker icons from url images
 /// and to show clusters using the [Fluster] package.
 class MapHelper {
+  // Función que genera el icono del cluster
+  static Future<BitmapDescriptor> getClusterIcon(
+    int pointsSize, [
+    Color clusterColor = Colors.blue,
+    Color textColor = Colors.white,
+    double size = 80,
+  ]) async {
+    final pictureRecorder = PictureRecorder();
+    final canvas =
+        Canvas(pictureRecorder, Rect.fromPoints(Offset(0, 0), Offset(80, 80)));
+
+    final paint = Paint()
+      ..color = pointsSize > 10 ? Colors.red : Colors.blue
+      ..style = PaintingStyle.fill;
+
+    // Dibuja el círculo
+    canvas.drawCircle(Offset(40, 40), 30, paint);
+
+    // Dibuja el número en el centro
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: pointsSize.toString(),
+        style: TextStyle(
+            color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+
+    textPainter.layout(minWidth: 0, maxWidth: 80);
+    textPainter.paint(canvas,
+        Offset(40 - textPainter.width / 2, 40 - textPainter.height / 2));
+
+    final picture = pictureRecorder.endRecording();
+    final img = await picture.toImage(80, 80);
+
+    final byteData = await img.toByteData(format: ImageByteFormat.png);
+    final uint8List = byteData!.buffer.asUint8List();
+
+    return BitmapDescriptor.fromBytes(uint8List);
+  }
+
   /// If there is a cached file and it's not old returns the cached marker image file
   /// else it will download the image and save it on the temp dir and return that file.
   ///
@@ -116,6 +157,8 @@ class MapHelper {
     int minZoom,
     int maxZoom,
   ) async {
+    final clusterIcon = await MapHelper.getClusterIcon(2); // ejemplo base
+
     return Fluster<MapMarker>(
       minZoom: minZoom,
       maxZoom: maxZoom,
@@ -123,47 +166,36 @@ class MapHelper {
       extent: 2048,
       nodeSize: 64,
       points: markers,
-      createCluster: (
-        BaseCluster? cluster,
-        double? lng,
-        double? lat,
-      ) =>
-          MapMarker(
-        id: cluster!.id.toString(),
-        position: LatLng(lat!, lng!),
-        isCluster: cluster.isCluster,
-        clusterId: cluster.id,
-        pointsSize: cluster.pointsSize,
-        childMarkerId: cluster.childMarkerId,
-      ),
+      createCluster: (BaseCluster? cluster, double? lng, double? lat) {
+        return MapMarker(
+          id: cluster!.id.toString(),
+          position: LatLng(lat!, lng!),
+          isCluster: true,
+          clusterId: cluster.id,
+          pointsSize: cluster.pointsSize,
+          childMarkerId: cluster.childMarkerId,
+          icon: clusterIcon,
+        );
+      },
     );
   }
 
   /// Gets a list of markers and clusters that reside within the visible bounding box for
   /// the given [currentZoom]. For more info check [Fluster.clusters].
-  static Future<List<Marker>> getClusterMarkers(
+  static Future<List<MapMarker>> getClusterItems(
     Fluster<MapMarker>? clusterManager,
-    double currentZoom,
+    double zoom,
     Color clusterColor,
-    Color clusterTextColor,
-    int clusterWidth,
-  ) {
-    if (clusterManager == null) return Future.value([]);
+    Color textColor,
+    int size,
+  ) async {
+    if (clusterManager == null) return [];
 
-    return Future.wait(clusterManager.clusters(
+    final clusters = clusterManager.clusters(
       [-180, -85, 180, 85],
-      currentZoom.toInt(),
-    ).map((mapMarker) async {
-      if (mapMarker.isCluster!) {
-        mapMarker.icon = await _getClusterMarker(
-          mapMarker.pointsSize!,
-          clusterColor,
-          clusterTextColor,
-          clusterWidth,
-        );
-      }
+      zoom.toInt(),
+    );
 
-      return mapMarker.toMarker();
-    }).toList());
+    return clusters;
   }
 }

@@ -24,3 +24,17 @@ class UsersError extends UsersState {
 
   UsersError(this.errorMessage);
 }
+
+class ProfileViewsLoading extends UsersState {}
+
+class ProfileViewsLoaded extends UsersState {
+  final List<String> viewers;
+
+  ProfileViewsLoaded(this.viewers);
+}
+
+class ProfileViewsError extends UsersState {
+  final String message;
+
+  ProfileViewsError(this.message);
+}

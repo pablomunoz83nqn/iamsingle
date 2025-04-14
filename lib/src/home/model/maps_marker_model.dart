@@ -1,41 +1,31 @@
-import 'package:fluster/fluster.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:fluster/fluster.dart';
+import 'users_model.dart'; // el modelo de usuario
 
-/// [Fluster] can only handle markers that conform to the [Clusterable] abstract class.
-///
-/// You can customize this class by adding more parameters that might be needed for
-/// your use case. For instance, you can pass an onTap callback or add an
-/// [InfoWindow] to your marker here, then you can use the [toMarker] method to convert
-/// this to a proper [Marker] that the [GoogleMap] can read.
 class MapMarker extends Clusterable {
   final String id;
   final LatLng position;
-  BitmapDescriptor? icon;
+  final BitmapDescriptor icon;
+  final bool isCluster;
+  final int? clusterId;
+  final int? pointsSize;
+  final String? childMarkerId;
+  final Users? user; // 👈 esto es nuevo
 
   MapMarker({
     required this.id,
     required this.position,
-    this.icon,
-    isCluster = false,
-    clusterId,
-    pointsSize,
-    childMarkerId,
-  }) : super(
-          markerId: id,
-          latitude: position.latitude,
-          longitude: position.longitude,
-          isCluster: isCluster,
-          clusterId: clusterId,
-          pointsSize: pointsSize,
-          childMarkerId: childMarkerId,
-        );
+    required this.icon,
+    this.isCluster = false,
+    this.clusterId,
+    this.pointsSize,
+    this.childMarkerId,
+    this.user,
+  });
 
-  Marker toMarker() => Marker(
-        markerId: MarkerId(isCluster! ? 'cl_$id' : id),
-        position: LatLng(
-          position.latitude,
-          position.longitude,
-        ),
-        icon: icon!,
-      );
+  @override
+  double? get latitude => position.latitude;
+
+  @override
+  double? get longitude => position.longitude;
 }

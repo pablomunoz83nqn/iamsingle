@@ -48,4 +48,16 @@ class FirestoreServiceUsers {
   Future<void> deleteUser(String user) {
     return usersCollection.doc(user).delete();
   }
+
+  Future<List<String>> getProfileViewers(String email) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(email)
+        .collection('profile_views')
+        .orderBy('timestamp', descending: true)
+        .limit(50)
+        .get();
+
+    return snapshot.docs.map((doc) => doc['viewerEmail'] as String).toList();
+  }
 }

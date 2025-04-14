@@ -32,3 +32,9 @@ class DeleteUser extends UsersEvent {
 
   DeleteUser(this.postsId);
 }
+
+class LoadProfileViews extends UsersEvent {
+  final String email;
+
+  LoadProfileViews(this.email);
+}

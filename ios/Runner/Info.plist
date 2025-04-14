@@ -2,12 +2,21 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>io.flutter.embedded_views_preview</key>
+    <true/>
+    <key>GMSApiKey</key>
+    <string>AIzaSyAUVi8sJISqV0Vxs1Ew6YWTUVD4_9Q2mr8</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Your location is required for user sharing location</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Your location is required for user sharing location</string>
+    <key>EnableBackgroundLocationUpdates</key> <true/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Novedades De Campo</string>
+	<string>RadarLove</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
