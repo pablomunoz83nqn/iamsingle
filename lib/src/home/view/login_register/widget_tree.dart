@@ -21,9 +21,7 @@ class _WidgetTreeState extends State<WidgetTree> {
         stream: Auth().authStateChanges,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            final data = snapshot.data; // Es tipo Object?
-
-            // Ahora lo casteás al tipo real
+            final data = snapshot.data;
             final myObject = data as User;
             return MyHomePage(
               email: myObject.email!,

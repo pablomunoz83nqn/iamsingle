@@ -1,4 +1,8 @@
 import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'dart:ui';
+import 'package:http/http.dart' as http;
 
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -33,8 +37,14 @@ class _MapsPageState extends State<MapsPage> {
 
   final String _markerImageUrl =
       'https://img.icons8.com/office/80/000000/marker.png';
+  final String _markerMEImageUrl =
+      'https://img.icons8.com/?size=100&id=rP5LDrmPHZBP&format=png&color=000000';
   final Color _clusterColor = Colors.blue;
   final Color _clusterTextColor = Colors.white;
+  final String _markerMaleImageUrl =
+      'https://img.icons8.com/ios-filled/50/user-male-circle.png';
+  final String _markerFemaleImageUrl =
+      'https://img.icons8.com/ios-filled/50/user-female-circle.png';
 
   Users? _selectedUser;
 
@@ -63,12 +73,20 @@ class _MapsPageState extends State<MapsPage> {
     for (final user in originalUsersList) {
       if (user.lat == null || user.long == null) continue;
 
-      final markerImage =
-          await MapHelper.getMarkerImageFromUrl(_markerImageUrl);
+      final isCurrentUser = user.email == currentUser?.email;
+
+      final markerImage = isCurrentUser
+          ? await bytesToBitmapDescriptor(
+              await createUserPinImage(_markerMEImageUrl))
+          : await MapHelper.getMarkerImageFromUrl(
+              user.gender?.toLowerCase() == 'masculino'
+                  ? _markerMaleImageUrl
+                  : _markerFemaleImageUrl,
+            );
 
       markers.add(
         MapMarker(
-          id: user.id ?? user.id ?? UniqueKey().toString(),
+          id: user.id ?? UniqueKey().toString(),
           position: LatLng(user.lat!, user.long!),
           icon: markerImage,
           user: user,
@@ -83,6 +101,10 @@ class _MapsPageState extends State<MapsPage> {
     );
 
     await updateMarkers();
+  }
+
+  Future<BitmapDescriptor> bytesToBitmapDescriptor(Uint8List bytes) async {
+    return BitmapDescriptor.fromBytes(bytes);
   }
 
   Future<void> updateMarkers([double? updatedZoom]) async {
@@ -119,7 +141,7 @@ class _MapsPageState extends State<MapsPage> {
           },
         );
       } else {
-        final mapMarker = item as MapMarker;
+        final mapMarker = item;
         return Marker(
           markerId: MarkerId(mapMarker.id),
           position: mapMarker.position,
@@ -220,6 +242,39 @@ class _MapsPageState extends State<MapsPage> {
         );
       },
     );
+  }
+
+  Future<ui.Image> loadUiImageFromNetwork(String imageUrl) async {
+    final http.Response response = await http.get(Uri.parse(imageUrl));
+    final Uint8List bytes = response.bodyBytes;
+    final codec = await ui.instantiateImageCodec(bytes);
+    final frame = await codec.getNextFrame();
+    return frame.image;
+  }
+
+  Future<Uint8List> createUserPinImage(String photoUrl) async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    const Size size = Size(150, 150);
+
+    // Radar pulsante
+    final Paint pulsePaint = Paint()
+      ..color = Colors.pinkAccent.withOpacity(0.3)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(size.center(Offset.zero), 75, pulsePaint);
+
+    // Imagen central
+    final ui.Image image = await loadUiImageFromNetwork(photoUrl);
+    final src =
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
+    final dst = Rect.fromLTWH(25, 25, 100, 100);
+    canvas.drawImageRect(image, src, dst, Paint());
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size.width.toInt(), size.height.toInt());
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+
+    return byteData!.buffer.asUint8List();
   }
 
   CameraPosition cameraPosition() {
