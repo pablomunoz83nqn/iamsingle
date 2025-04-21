@@ -16,7 +16,7 @@ import 'dart:io';
 import 'package:i_am_single/src/home/controller/field_controller.dart';
 
 import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
-import 'package:i_am_single/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
+
 import 'package:i_am_single/src/home/model/profile_model.dart';
 
 class EditPost extends StatefulWidget {
@@ -67,8 +67,7 @@ class EditPostState extends State<EditPost> {
 
     textController = TextEditingController();
     numTextController = TextEditingController();
-    crudMethods = HomeViewController(context);
-    BlocProvider.of<YacimientoBloc>(context).add(LoadYacimiento());
+
     getCurrentPosition();
     super.initState();
   }

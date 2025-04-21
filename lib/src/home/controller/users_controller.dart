@@ -11,15 +11,18 @@ class FirestoreServiceUsers {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         print(data);
         return Users(
-          email: data['email'],
-          lat: data['lat'],
-          long: data['long'],
-          name: data['name'],
-          lastName: data['lastName'],
-          age: data['age'],
-          birthDate: data['birthDate'],
-          gender: data['gender'],
-        );
+            email: data['email'],
+            lat: data['lat'],
+            long: data['long'],
+            name: data['name'],
+            lastName: data['lastName'],
+            age: data['age'],
+            birthDate: data['birthDate'],
+            gender: data['gender'],
+            bio: data['bio'],
+            isPremium: data['isPremium'],
+            profileImage: data['profileImage'],
+            visitedBy: data['visitedBy']);
       }).toList();
     });
   }
@@ -42,6 +45,25 @@ class FirestoreServiceUsers {
       'gender': user.gender ?? user.gender,
       'lat': user.lat ?? user.lat,
       'long': user.long ?? user.long,
+      'bio': user.bio ?? user.bio,
+    });
+  }
+
+  Future<void> editUser(Users user) {
+    //return usersCollection.add  ({
+    return usersCollection.doc(user.email).set({
+      'email': user.email ?? user.email,
+      'name': user.name ?? user.name,
+      'lastName': user.lastName ?? user.lastName,
+      'age': user.age ?? user.age,
+      'birthDate': user.birthDate ?? user.birthDate,
+      'gender': user.gender ?? user.gender,
+      'lat': user.lat ?? user.lat,
+      'long': user.long ?? user.long,
+      'bio': user.bio ?? user.bio,
+      'profileImage': user.profileImage ?? user.profileImage,
+      'isPremium': user.isPremium ?? user.isPremium,
+      'visitedBy': user.visitedBy ?? user.visitedBy,
     });
   }
 

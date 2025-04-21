@@ -3,9 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
 import 'package:i_am_single/src/home/model/profile_model.dart';
 
-import 'package:i_am_single/src/home/view/field_view/update_profile.dart';
+import 'package:i_am_single/src/home/view/field_view/edit_profile_page.dart';
 import 'package:i_am_single/src/home/view/field_view/post_file_widget.dart';
-import 'package:i_am_single/src/home/view/home_view/search_screen.dart';
 
 class FieldView extends StatefulWidget {
   final Object parametros;
@@ -113,20 +112,6 @@ class FieldViewState extends State<FieldView> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: SearchScreen(
-                  selectedYacimiento:
-                      selectedYacimiento == "" ? "" : selectedYacimiento,
-                  onApply: (String name) {
-                    selectedYacimiento = name;
-                    BlocProvider.of<PostsBloc>(context)
-                        .add(LoadRescuedPosts(name));
-                    BlocProvider.of<PostsBloc>(context)
-                        .add(LoadOnFieldPosts(name));
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
                 child: Container(
                   decoration: BoxDecoration(
                       color: Colors.white,
@@ -192,7 +177,7 @@ class FieldViewState extends State<FieldView> {
             FloatingActionButton.extended(
               onPressed: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => UpdateProfile()));
+                    MaterialPageRoute(builder: (context) => EditProfilePage()));
               },
               icon: const Icon(Icons.add_a_photo),
               label: const Text("Nuevo registro"),

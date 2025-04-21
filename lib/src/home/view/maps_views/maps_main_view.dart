@@ -35,8 +35,6 @@ class _MapsPageState extends State<MapsPage> {
   bool _isMapLoading = true;
   bool _areMarkersLoading = true;
 
-  final String _markerImageUrl =
-      'https://img.icons8.com/office/80/000000/marker.png';
   final String _markerMEImageUrl =
       'https://img.icons8.com/?size=100&id=rP5LDrmPHZBP&format=png&color=000000';
   final Color _clusterColor = Colors.blue;
@@ -79,6 +77,7 @@ class _MapsPageState extends State<MapsPage> {
           ? await bytesToBitmapDescriptor(
               await createUserPinImage(_markerMEImageUrl))
           : await MapHelper.getMarkerImageFromUrl(
+              targetWidth: 100,
               user.gender?.toLowerCase() == 'masculino'
                   ? _markerMaleImageUrl
                   : _markerFemaleImageUrl,
@@ -188,7 +187,12 @@ class _MapsPageState extends State<MapsPage> {
                         width: 200,
                         child: Image(
                           image: NetworkImage(
-                              "https://cdn.pixabay.com/photo/2021/02/27/15/38/woman-6054868_1280.jpg" /* user.profileImage ?? '' */),
+                            user.profileImage != null
+                                ? user.profileImage!
+                                : user.gender?.toLowerCase() == 'masculino'
+                                    ? _markerMaleImageUrl
+                                    : _markerFemaleImageUrl,
+                          ),
                         ),
                       ),
                     ),
@@ -320,7 +324,7 @@ class _MapsPageState extends State<MapsPage> {
                 opacity: _isMapLoading ? 0 : 1,
                 child: GoogleMap(
                   mapToolbarEnabled: true,
-                  zoomControlsEnabled: false,
+                  zoomControlsEnabled: true,
                   initialCameraPosition: cameraPosition(),
                   markers: _markers,
                   onMapCreated: _onMapCreated,

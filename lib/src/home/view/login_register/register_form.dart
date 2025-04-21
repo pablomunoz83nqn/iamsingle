@@ -86,7 +86,7 @@ class _RegisterFormScreenState extends State<RegisterFormScreen> {
           birthDate: _fechaNacimientoController.text,
           gender: _selectedGender);
 
-      BlocProvider.of<UsersBloc>(context).add(AddUser(userInfo));
+      BlocProvider.of<UsersBloc>(context).add(AddUserEvent(userInfo));
     }
   }
 

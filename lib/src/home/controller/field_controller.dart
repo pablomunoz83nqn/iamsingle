@@ -7,7 +7,7 @@ class HomeViewController {
   int onFieldNum = 0;
   int rescuedNum = 0;
 
-  CollectionReference dbref = FirebaseFirestore.instance.collection('posts');
+  CollectionReference dbref = FirebaseFirestore.instance.collection('users');
 
   HomeViewController._();
   static HomeViewController singleton = HomeViewController._();

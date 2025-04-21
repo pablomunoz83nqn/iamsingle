@@ -1,21 +1,19 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:i_am_single/src/home/controller/locaciones_bloc/locaciones_bloc.dart';
-import 'package:i_am_single/src/home/controller/locaciones_controller.dart';
+
 import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
 import 'package:i_am_single/src/home/controller/posts_controller.dart';
 import 'package:i_am_single/src/home/controller/users_bloc/users_bloc.dart';
 import 'package:i_am_single/src/home/controller/users_controller.dart';
-import 'package:i_am_single/src/home/controller/yacimiento_bloc/yacimiento_bloc.dart';
-import 'package:i_am_single/src/home/controller/yacimiento_controller.dart';
+
 import 'package:i_am_single/src/home/model/profile_model.dart';
 import 'package:i_am_single/src/home/view/field_view/edit_post.dart';
+import 'package:i_am_single/src/home/view/field_view/edit_profile_page.dart';
 import 'package:i_am_single/src/home/view/field_view/field_view.dart';
 
 // Import the firebase_core plugin
 
-import 'package:i_am_single/src/home/view/home_view/home_admin_view.dart';
 import 'package:i_am_single/src/home/view/login_register/register_form.dart';
 import 'package:i_am_single/src/home/view/login_register/widget_tree.dart';
 
@@ -28,12 +26,6 @@ Future<void> main() async {
     ),
     BlocProvider<PostsBloc>(
       create: (context) => PostsBloc(FirestoreServicePosts()),
-    ),
-    BlocProvider<YacimientoBloc>(
-      create: (context) => YacimientoBloc(FirestoreServiceYacimiento()),
-    ),
-    BlocProvider<LocacionesBloc>(
-      create: (context) => LocacionesBloc(FirestoreServiceLocaciones()),
     ),
   ], child: const MyApp()));
 }
@@ -71,6 +63,9 @@ class MyApp extends StatelessWidget {
     if (settings.name == '/edit') {
       return _buildRoute(
           settings, EditPost(post: settings.arguments as Profile));
+    }
+    if (settings.name == '/editProfile') {
+      return _buildRoute(settings, EditProfilePage());
     }
     if (settings.name == '/register') {
       return _buildRoute(settings, RegisterFormScreen());

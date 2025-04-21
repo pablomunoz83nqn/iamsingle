@@ -15,26 +15,32 @@ class LoadOnFieldUsers extends UsersEvent {
   LoadOnFieldUsers(this.name);
 }
 
-class AddUser extends UsersEvent {
+class UpdateUserEvent extends UsersEvent {
+  Users user;
+
+  UpdateUserEvent(this.user);
+}
+
+class AddUserEvent extends UsersEvent {
   final Users users;
 
-  AddUser(this.users);
+  AddUserEvent(this.users);
 }
 
-class UpdatePosition extends UsersEvent {
+class UpdatePositionEvent extends UsersEvent {
   final Users user;
 
-  UpdatePosition(this.user);
+  UpdatePositionEvent(this.user);
 }
 
-class DeleteUser extends UsersEvent {
+class DeleteUserEvent extends UsersEvent {
   final String postsId;
 
-  DeleteUser(this.postsId);
+  DeleteUserEvent(this.postsId);
 }
 
-class LoadProfileViews extends UsersEvent {
+class LoadProfileViewsEvent extends UsersEvent {
   final String email;
 
-  LoadProfileViews(this.email);
+  LoadProfileViewsEvent(this.email);
 }

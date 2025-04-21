@@ -20,7 +20,7 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
       }
     });
 
-    on<AddUser>((event, emit) async {
+    on<AddUserEvent>((event, emit) async {
       try {
         emit(UsersLoading());
         await _firestoreService.addUser(event.users);
@@ -33,7 +33,20 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
       }
     });
 
-    on<UpdatePosition>((event, emit) async {
+    on<UpdateUserEvent>((event, emit) async {
+      try {
+        emit(UsersLoading());
+        await _firestoreService.editUser(event.user);
+        emit(UsersOperationSuccess('Users Updated successfully.'));
+        emit(UsersLoading());
+        final posts = await _firestoreService.getUsers().first;
+        emit(UsersLoaded(posts));
+      } catch (e) {
+        emit(UsersError('Failed to add todo.'));
+      }
+    });
+
+    on<UpdatePositionEvent>((event, emit) async {
       try {
         emit(UsersLoading());
         await _firestoreService.updatePosition(event.user);
@@ -53,7 +66,7 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
       }
     });
 
-    on<DeleteUser>((event, emit) async {
+    on<DeleteUserEvent>((event, emit) async {
       try {
         emit(UsersLoading());
         await _firestoreService.deleteUser(event.postsId);

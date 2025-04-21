@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,7 +13,7 @@ import 'package:lottie/lottie.dart';
 import 'package:i_am_single/src/home/controller/field_controller.dart';
 import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
 
-import 'package:i_am_single/src/home/view/field_view/update_profile.dart';
+import 'package:i_am_single/src/home/view/field_view/edit_profile_page.dart';
 
 import 'package:i_am_single/src/home/view/maps_views/maps_controller.dart';
 
@@ -46,6 +48,13 @@ class _MyHomePageState extends State<MyHomePage> {
     mapController = MapsController(context);
 
     getCurrentPosition();
+    //refreshoMyPosition();
+  }
+
+  void refreshoMyPosition() {
+    Timer.periodic(Duration(minutes: 5), (timer) async {
+      getCurrentPosition();
+    });
   }
 
   getCurrentPosition() async {
@@ -59,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     userInfo = Users(email: widget.email, lat: lat, long: long);
 
-    BlocProvider.of<UsersBloc>(context).add(UpdatePosition(userInfo));
+    BlocProvider.of<UsersBloc>(context).add(UpdatePositionEvent(userInfo));
   }
 
   Future<Position> _determinePosition() async {
@@ -150,16 +159,6 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           floatingActionButtonLocation:
               FloatingActionButtonLocation.centerDocked,
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const UpdateProfile()));
-            },
-            tooltip: 'Agregar nuevo',
-            child: const Icon(Icons.add),
-          ),
         );
       } else if (state is UsersOperationSuccess) {
         return const Center(child: CircularProgressIndicator());
@@ -185,6 +184,16 @@ class _MyHomePageState extends State<MyHomePage> {
             title: Text(user?.email ?? "User email"),
           ),
           const Divider(),
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text('Editar perfil'),
+            onTap: () {
+              Navigator.of(context).pop(); // Cierra el drawer
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const EditProfilePage()),
+              );
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text("Sign Out"),
