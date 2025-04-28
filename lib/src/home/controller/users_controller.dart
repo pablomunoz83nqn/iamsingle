@@ -21,7 +21,7 @@ class FirestoreServiceUsers {
             gender: data['gender'],
             bio: data['bio'],
             isPremium: data['isPremium'],
-            profileImage: data['profileImage'],
+            profileImages: data['profileImages'],
             visitedBy: data['visitedBy']);
       }).toList();
     });
@@ -61,7 +61,7 @@ class FirestoreServiceUsers {
       'lat': user.lat ?? user.lat,
       'long': user.long ?? user.long,
       'bio': user.bio ?? user.bio,
-      'profileImage': user.profileImage ?? user.profileImage,
+      'profileImages': user.profileImages ?? user.profileImages,
       'isPremium': user.isPremium ?? user.isPremium,
       'visitedBy': user.visitedBy ?? user.visitedBy,
     });

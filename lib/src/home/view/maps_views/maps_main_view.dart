@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:i_am_single/src/home/view/login_register/auth.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
 
 import '../../controller/users_bloc/users_bloc.dart';
 import '../../model/users_model.dart';
@@ -168,81 +169,104 @@ class _MapsPageState extends State<MapsPage> {
   void _showUserDetails(Users user) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Stack(
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.75,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Center(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(30),
-                      child: SizedBox(
-                        height: 200,
-                        width: 200,
-                        child: Image(
-                          image: NetworkImage(
-                            user.profileImage != null
-                                ? user.profileImage!
-                                : user.gender?.toLowerCase() == 'masculino'
-                                    ? _markerMaleImageUrl
-                                    : _markerFemaleImageUrl,
-                          ),
-                        ),
-                      ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: 120,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  Center(
-                    child: BlurryContainer(
-                        blur: 6,
-                        width: 200,
-                        height: 200,
-                        elevation: 0,
-                        color: Colors.transparent,
-                        padding: const EdgeInsets.all(8),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(20)),
-                        child: Container()),
-                  )
+                  const SizedBox(height: 16),
+                  // Carrusel de fotos
+                  SizedBox(
+                    height: 300, // Controla el tamaño del carrusel
+                    child: PageView.builder(
+                      itemCount: user.profileImages?.length ?? 1,
+                      itemBuilder: (context, index) {
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.network(
+                            user.profileImages?[index] ??
+                                (user.gender?.toLowerCase() == 'masculino'
+                                    ? _markerMaleImageUrl
+                                    : _markerFemaleImageUrl),
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    user.name ?? 'Usuario sin nombre',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    user.bio ?? 'Sin descripción',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 16, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 24),
+                  user.isPremium == true
+                      ? ElevatedButton.icon(
+                          onPressed: () {
+                            // Acción premium
+                          },
+                          icon: const Icon(Icons.chat_bubble),
+                          label: const Text("Enviar mensaje"),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 32, vertical: 14),
+                            backgroundColor: Colors.deepPurple,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        )
+                      : ElevatedButton.icon(
+                          onPressed: () {
+                            // Navegar a upgrade
+                          },
+                          icon: const Icon(Icons.lock),
+                          label: const Text("Desbloquear funciones premium"),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 32, vertical: 14),
+                            backgroundColor: Colors.orange,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                  const SizedBox(height: 32),
                 ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                user.name ?? 'Usuario sin nombre',
-                style:
-                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              if (user.isPremium == true)
-                const Text("🔓 Usuario premium",
-                    style: TextStyle(color: Colors.orange))
-              else
-                const Text("🔒 Funciones limitadas",
-                    style: TextStyle(color: Colors.grey)),
-              const SizedBox(height: 16),
-              Text(user.bio ?? 'Sin descripción'),
-              const SizedBox(height: 12),
-              if (user.isPremium == true)
-                ElevatedButton(
-                  onPressed: () {
-                    // Acción premium
-                  },
-                  child: const Text("Enviar mensaje"),
-                )
-              else
-                ElevatedButton(
-                  onPressed: () {
-                    // Navegar a upgrade
-                  },
-                  child: const Text("Desbloquear funciones premium"),
-                )
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -305,7 +329,12 @@ class _MapsPageState extends State<MapsPage> {
     return BlocBuilder<UsersBloc, UsersState>(
       builder: (context, state) {
         if (state is UsersLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+              child: Shimmer(
+            child: Container(
+              color: Colors.deepPurple,
+            ),
+          ));
         } else if (state is UsersLoaded) {
           if (originalUsersList != state.users) {
             originalUsersList = state.users;
@@ -332,7 +361,12 @@ class _MapsPageState extends State<MapsPage> {
                 ),
               ),
               if (_isMapLoading)
-                const Center(child: CircularProgressIndicator()),
+                Center(
+                    child: Shimmer(
+                  child: Container(
+                    color: Colors.deepPurple,
+                  ),
+                )),
               if (_areMarkersLoading)
                 Align(
                   alignment: Alignment.topCenter,

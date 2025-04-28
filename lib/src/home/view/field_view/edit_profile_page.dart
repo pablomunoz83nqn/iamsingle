@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -24,8 +25,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _bioCtrl = TextEditingController();
 
   String? _gender;
-  File? _imageFile;
-  String? _profileImageUrl;
+  List<File> _imageFiles = []; // Lista de imágenes seleccionadas
 
   final _user = FirebaseAuth.instance.currentUser;
   Users? _currentUser;
@@ -38,71 +38,89 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Future<void> _loadCurrentUser() async {
     if (_user != null) {
+      // Fuerza la obtención de datos directamente desde el servidor
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(_user!.email)
-          .get();
+          .get(const GetOptions(
+              source: Source.server)); // Carga directa desde el servidor
+
       final data = doc.data();
       if (data != null) {
+        // Cargar los datos del usuario
         _currentUser = Users.fromMap(data, _user!.email!);
         _nameCtrl.text = _currentUser?.name ?? '';
         _lastNameCtrl.text = _currentUser?.lastName ?? '';
         _ageCtrl.text = _currentUser?.age ?? '';
         _bioCtrl.text = _currentUser?.bio ?? '';
         _gender = _currentUser?.gender;
-        _profileImageUrl = _currentUser?.profileImage;
+
+        // Cargar las imágenes de perfil, si existen
+        if (_currentUser?.profileImages != null &&
+            _currentUser!.profileImages!.isNotEmpty) {
+          setState(() {
+            // Mantener solo las URLs de las imágenes
+            _imageFiles = [];
+          });
+        } else {
+          // Si no hay imágenes, asigna un valor de placeholder vacío o una imagen predeterminada
+          setState(() {
+            _imageFiles = [];
+          });
+        }
+
+        // Actualizar la interfaz de usuario
         setState(() {});
       }
     }
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _imageFile = File(picked.path);
-      });
+  Future<List<String?>> _uploadImages(List<File> files) async {
+    List<String?> imageUrls = [];
+
+    for (var file in files) {
+      try {
+        final ref = FirebaseStorage.instance.ref().child(
+            'images/${_user!.email}/${DateTime.now().millisecondsSinceEpoch}.jpg');
+        final uploadTask = await ref.putFile(file);
+        final snapshot = await uploadTask;
+
+        if (snapshot.state == TaskState.success) {
+          final url = await ref.getDownloadURL();
+          imageUrls.add(url);
+        } else {
+          imageUrls.add(null); // Agregar un valor null si la carga falla
+        }
+      } catch (e) {
+        print('❌ Error al subir imagen: $e');
+        imageUrls.add(null); // Agregar un valor null en caso de error
+      }
     }
+
+    return imageUrls;
   }
 
-  Future<String?> _uploadImage(File file) async {
-    try {
-      final ref =
-          FirebaseStorage.instance.ref().child('images/${_user!.email}.jpg');
-      final uploadTask = await ref.putFile(file);
-
-      // Esperar a que se complete y verificar estado
-      final snapshot = await uploadTask;
-
-      if (snapshot.state == TaskState.success) {
-        return await ref.getDownloadURL();
-      } else {
-        print('❌ Falló la subida. Estado: ${snapshot.state}');
-        return null;
-      }
-    } catch (e) {
-      print('❌ Error al subir o descargar imagen: $e');
-      return null;
+  Future<void> _pickImages() async {
+    final picker = ImagePicker();
+    final picked =
+        await picker.pickMultiImage(); // Permite seleccionar múltiples imágenes
+    if (picked != null) {
+      setState(() {
+        _imageFiles = picked.map((file) => File(file.path)).toList();
+      });
     }
   }
 
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
-      String? imageUrl = _profileImageUrl;
+      List? imageUrls = [];
 
-      if (_imageFile != null) {
-        final uploadedUrl = await _uploadImage(_imageFile!);
-        if (uploadedUrl != null) {
-          imageUrl = uploadedUrl;
-        } else {
-          // Manejar error visual
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text("Error al subir la imagen de perfil.")),
-          );
-          return;
-        }
+      // Subir imágenes si es necesario
+      if (_imageFiles.isNotEmpty) {
+        imageUrls = await _uploadImages(_imageFiles);
+      } else {
+        // Si no se seleccionaron imágenes, mantenemos las anteriores
+        imageUrls = _currentUser?.profileImages ?? [];
       }
 
       Users updatedUser = Users(
@@ -114,13 +132,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
         birthDate: _currentUser?.birthDate,
         gender: _gender,
         bio: _bioCtrl.text.trim(),
-        profileImage: imageUrl,
+        profileImages: imageUrls, // Actualizamos con la lista de imágenes
         lat: _currentUser?.lat,
         long: _currentUser?.long,
         isPremium: _currentUser?.isPremium,
         visitedBy: _currentUser?.visitedBy,
       );
 
+      // Disparar el evento para actualizar el usuario
       BlocProvider.of<UsersBloc>(context).add(UpdateUserEvent(updatedUser));
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -146,9 +165,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
       },
       builder: (context, state) {
         if (state is UsersLoading) {
-          return const Scaffold(
+          return Scaffold(
             body: Center(
-              child: CircularProgressIndicator(),
+              child: Shimmer(
+                child: Container(
+                  color: Colors.deepPurple,
+                ),
+              ),
             ),
           );
         }
@@ -161,18 +184,57 @@ class _EditProfilePageState extends State<EditProfilePage> {
               child: Column(
                 children: [
                   GestureDetector(
-                    onTap: _pickImage,
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundImage: _imageFile != null
-                          ? FileImage(_imageFile!)
-                          : (_profileImageUrl != null
-                              ? NetworkImage(_profileImageUrl!)
-                              : null) as ImageProvider<Object>?,
-                      child: _imageFile == null && _profileImageUrl == null
-                          ? const Icon(Icons.add_a_photo, size: 40)
-                          : null,
-                    ),
+                    onTap: _pickImages,
+                    child: _currentUser?.profileImages?.isNotEmpty ?? false
+                        ? SizedBox(
+                            height: 100,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount:
+                                  _currentUser?.profileImages?.length ?? 0,
+                              itemBuilder: (context, index) {
+                                final imageUrl =
+                                    _currentUser!.profileImages![index];
+                                return Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(
+                                      imageUrl,
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (BuildContext context,
+                                          Widget child,
+                                          ImageChunkEvent? loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        } else {
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              value: loadingProgress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                          .cumulativeBytesLoaded /
+                                                      (loadingProgress
+                                                              .expectedTotalBytes ??
+                                                          1)
+                                                  : null,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          )
+                        : const CircleAvatar(
+                            radius: 50,
+                            child: Icon(Icons.add_a_photo, size: 40),
+                          ),
                   ),
                   const SizedBox(height: 20),
                   TextFormField(

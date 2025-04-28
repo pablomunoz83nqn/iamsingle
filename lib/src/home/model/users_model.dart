@@ -7,7 +7,7 @@ class Users {
   String? age;
   String? birthDate;
   String? gender;
-  String? profileImage;
+  List? profileImages;
   double? lat;
   double? long;
   bool? isPremium;
@@ -22,7 +22,7 @@ class Users {
     this.age,
     this.birthDate,
     this.gender,
-    this.profileImage,
+    this.profileImages,
     this.lat,
     this.long,
     this.isPremium,
@@ -39,7 +39,7 @@ class Users {
       age: data['age'],
       birthDate: data['birthDate'],
       gender: data['gender'],
-      profileImage: data['profileImage'],
+      profileImages: data['profileImages'],
       lat: data['lat']?.toDouble(),
       long: data['long']?.toDouble(),
       isPremium: data['isPremium'] ?? false,
@@ -56,7 +56,7 @@ class Users {
       'age': age,
       'birthDate': birthDate,
       'gender': gender,
-      'profileImage': profileImage,
+      'profileImage': profileImages,
       'lat': lat,
       'long': long,
       'isPremium': isPremium,

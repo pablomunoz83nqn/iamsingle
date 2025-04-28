@@ -8,7 +8,7 @@ import 'package:i_am_single/src/home/controller/users_bloc/users_bloc.dart';
 import 'package:i_am_single/src/home/controller/users_controller.dart';
 
 import 'package:i_am_single/src/home/model/profile_model.dart';
-import 'package:i_am_single/src/home/view/field_view/edit_post.dart';
+
 import 'package:i_am_single/src/home/view/field_view/edit_profile_page.dart';
 import 'package:i_am_single/src/home/view/field_view/field_view.dart';
 
@@ -60,10 +60,7 @@ class MyApp extends StatelessWidget {
       // crear asi las nuevas rutas
       return _buildRoute(settings, const WidgetTree());
     }
-    if (settings.name == '/edit') {
-      return _buildRoute(
-          settings, EditPost(post: settings.arguments as Profile));
-    }
+
     if (settings.name == '/editProfile') {
       return _buildRoute(settings, EditProfilePage());
     }

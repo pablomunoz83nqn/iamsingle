@@ -18,6 +18,7 @@ import 'package:i_am_single/src/home/view/field_view/edit_profile_page.dart';
 import 'package:i_am_single/src/home/view/maps_views/maps_controller.dart';
 
 import 'package:i_am_single/src/home/view/maps_views/maps_main_view.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
 
 class MyHomePage extends StatefulWidget {
   final String email;
@@ -98,7 +99,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return BlocBuilder<UsersBloc, UsersState>(builder: (context, state) {
       if (state is UsersLoading) {
-        return const Center(child: CircularProgressIndicator());
+        return Center(
+            child: Shimmer(
+          child: Container(
+            color: Colors.deepPurple,
+          ),
+        ));
       } else if (state is UsersLoaded) {
         int numEnCampo = state.users.length;
 
@@ -108,7 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
             backgroundColor: Colors.greenAccent,
             title: Center(
               child: Text(
-                'I am Single',
+                'LoveRadar',
                 style: TextStyle(color: Colors.blueGrey[800], fontSize: 24),
               ),
             ),
@@ -161,7 +167,12 @@ class _MyHomePageState extends State<MyHomePage> {
               FloatingActionButtonLocation.centerDocked,
         );
       } else if (state is UsersOperationSuccess) {
-        return const Center(child: CircularProgressIndicator());
+        return Center(
+            child: Shimmer(
+          child: Container(
+            color: Colors.deepPurple,
+          ),
+        ));
       } else {
         return const Center(child: LinearProgressIndicator());
       }

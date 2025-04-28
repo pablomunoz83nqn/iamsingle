@@ -5,6 +5,7 @@ import 'package:i_am_single/src/home/model/profile_model.dart';
 
 import 'package:i_am_single/src/home/view/field_view/edit_profile_page.dart';
 import 'package:i_am_single/src/home/view/field_view/post_file_widget.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
 
 class FieldView extends StatefulWidget {
   final Object parametros;
@@ -43,7 +44,12 @@ class FieldViewState extends State<FieldView> {
   Widget? userPostsList() {
     return BlocBuilder<PostsBloc, PostsState>(builder: (context, state) {
       if (state is PostsLoading) {
-        return const Center(child: CircularProgressIndicator());
+        return Center(
+            child: Shimmer(
+          child: Container(
+            color: Colors.deepPurple,
+          ),
+        ));
       } else if (state is PostsLoaded) {
         final List<Map<String, dynamic>> categoryList = [];
 

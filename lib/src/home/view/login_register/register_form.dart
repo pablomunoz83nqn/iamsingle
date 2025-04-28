@@ -5,6 +5,7 @@ import 'package:i_am_single/src/home/controller/users_bloc/users_bloc.dart';
 import 'package:i_am_single/src/home/model/users_model.dart';
 import 'package:i_am_single/src/home/view/login_register/auth.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
 
 class RegisterFormScreen extends StatefulWidget {
   const RegisterFormScreen({super.key});
@@ -107,7 +108,12 @@ class _RegisterFormScreenState extends State<RegisterFormScreen> {
     return BlocBuilder<UsersBloc, UsersState>(
       builder: (context, state) {
         if (state is UsersLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+              child: Shimmer(
+            child: Container(
+              color: Colors.deepPurple,
+            ),
+          ));
         } else if (state is UsersLoaded) {
           return Scaffold(
               body: Center(
