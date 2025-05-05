@@ -1,6 +1,6 @@
 {
-    "name": "i_am_single",
-    "short_name": "i_am_single",
+    "name": "loveradar",
+    "short_name": "loveradar",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

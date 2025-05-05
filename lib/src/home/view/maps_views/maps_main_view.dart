@@ -10,8 +10,9 @@ import 'package:fluster/fluster.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:i_am_single/src/home/view/login_register/auth.dart';
+import 'package:loveradar/src/home/view/login_register/auth.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../controller/users_bloc/users_bloc.dart';
 import '../../model/users_model.dart';
@@ -30,6 +31,7 @@ class _MapsPageState extends State<MapsPage> {
   final Set<Marker> _markers = {};
   final List<LatLng> markerLocations = [];
   List<Users> originalUsersList = [];
+  final PageController _controller = PageController();
 
   Fluster<MapMarker>? _clusterManager;
   double _currentZoom = 10;
@@ -177,7 +179,7 @@ class _MapsPageState extends State<MapsPage> {
       builder: (_) {
         return DraggableScrollableSheet(
           expand: false,
-          initialChildSize: 0.75,
+          initialChildSize: 0.8,
           minChildSize: 0.5,
           maxChildSize: 0.95,
           builder: (context, scrollController) {
@@ -197,24 +199,47 @@ class _MapsPageState extends State<MapsPage> {
                   ),
                   const SizedBox(height: 16),
                   // Carrusel de fotos
-                  SizedBox(
-                    height: 300, // Controla el tamaño del carrusel
-                    child: PageView.builder(
-                      itemCount: user.profileImages?.length ?? 1,
-                      itemBuilder: (context, index) {
-                        return ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image.network(
-                            user.profileImages?[index] ??
-                                (user.gender?.toLowerCase() == 'masculino'
-                                    ? _markerMaleImageUrl
-                                    : _markerFemaleImageUrl),
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
-                        );
-                      },
-                    ),
+                  Column(
+                    children: [
+                      SizedBox(
+                        height: 500, // Controla el tamaño del carrusel
+                        child: PageView.builder(
+                          controller: _controller,
+                          itemCount: user.profileImages?.length ?? 1,
+                          itemBuilder: (context, index) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Image.network(
+                                user.profileImages?[index] ??
+                                    (user.gender?.toLowerCase() == 'masculino'
+                                        ? _markerMaleImageUrl
+                                        : _markerFemaleImageUrl),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      SmoothPageIndicator(
+                        controller:
+                            _controller, // Asocia el controlador al indicador
+                        count: user.profileImages?.length ?? 1,
+                        effect: const ExpandingDotsEffect(
+                          dotWidth: 10.0, // Tamaño de los puntos
+                          dotHeight: 10.0, // Tamaño de los puntos
+                          spacing: 8.0, // Espacio entre los puntos
+                          expansionFactor: 4.0, // Efecto de expansión
+                          dotColor:
+                              Colors.grey, // Color de los puntos inactivos
+                          activeDotColor:
+                              Colors.blue, // Color de los puntos activos
+                        ),
+                      )
+                    ],
                   ),
                   const SizedBox(height: 20),
                   Text(

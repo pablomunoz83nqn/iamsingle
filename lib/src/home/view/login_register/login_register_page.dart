@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:i_am_single/src/home/view/login_register/auth.dart';
+import 'package:loveradar/src/home/view/login_register/auth.dart';
 
 class LoginRegisterPage extends StatefulWidget {
   const LoginRegisterPage({super.key});

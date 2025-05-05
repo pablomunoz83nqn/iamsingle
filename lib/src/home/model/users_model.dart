@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Users {
   String? email;
   String? bio;
@@ -13,6 +15,10 @@ class Users {
   bool? isPremium;
   List? visitedBy;
 
+  // Nuevos campos
+  bool? radarActive;
+  DateTime? radarActivatedAt;
+
   Users({
     this.email,
     this.bio,
@@ -27,6 +33,8 @@ class Users {
     this.long,
     this.isPremium,
     this.visitedBy,
+    this.radarActive,
+    this.radarActivatedAt,
   });
 
   factory Users.fromMap(Map<String, dynamic> data, String uid) {
@@ -44,6 +52,10 @@ class Users {
       long: data['long']?.toDouble(),
       isPremium: data['isPremium'] ?? false,
       visitedBy: data['visitedBy'] ?? [],
+      radarActive: data['radarActive'] ?? false,
+      radarActivatedAt: data['radarActivatedAt'] != null
+          ? (data['radarActivatedAt'] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -56,11 +68,13 @@ class Users {
       'age': age,
       'birthDate': birthDate,
       'gender': gender,
-      'profileImage': profileImages,
+      'profileImages': profileImages,
       'lat': lat,
       'long': long,
       'isPremium': isPremium,
       'visitedBy': visitedBy,
+      'radarActive': radarActive,
+      'radarActivatedAt': radarActivatedAt,
     };
   }
 }

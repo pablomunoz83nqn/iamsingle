@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:i_am_single/src/home/controller/users_bloc/users_bloc.dart';
-import 'package:i_am_single/src/home/model/users_model.dart';
-import 'package:i_am_single/src/home/view/login_register/auth.dart';
+import 'package:loveradar/src/home/controller/users_bloc/users_bloc.dart';
+import 'package:loveradar/src/home/model/users_model.dart';
+import 'package:loveradar/src/home/view/login_register/auth.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 

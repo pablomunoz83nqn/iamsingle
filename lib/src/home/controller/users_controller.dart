@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:i_am_single/src/home/model/users_model.dart';
+import 'package:loveradar/src/home/model/users_model.dart';
 
 class FirestoreServiceUsers {
   final CollectionReference usersCollection =

@@ -1,24 +1,19 @@
 import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:i_am_single/src/home/controller/users_bloc/users_bloc.dart';
-
-import 'package:i_am_single/src/home/model/users_model.dart';
-import 'package:i_am_single/src/home/view/login_register/auth.dart';
-
+import 'package:loveradar/src/home/controller/users_bloc/users_bloc.dart';
+import 'package:loveradar/src/home/model/users_model.dart';
+import 'package:loveradar/src/home/view/login_register/auth.dart';
 import 'package:lottie/lottie.dart';
-import 'package:i_am_single/src/home/controller/field_controller.dart';
-import 'package:i_am_single/src/home/controller/posts_bloc/posts_bloc.dart';
-
-import 'package:i_am_single/src/home/view/field_view/edit_profile_page.dart';
-
-import 'package:i_am_single/src/home/view/maps_views/maps_controller.dart';
-
-import 'package:i_am_single/src/home/view/maps_views/maps_main_view.dart';
+import 'package:loveradar/src/home/controller/field_controller.dart';
+import 'package:loveradar/src/home/controller/posts_bloc/posts_bloc.dart';
+import 'package:loveradar/src/home/view/edit_profile_view/edit_profile_page.dart';
+import 'package:loveradar/src/home/view/maps_views/maps_controller.dart';
+import 'package:loveradar/src/home/view/maps_views/maps_main_view.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MyHomePage extends StatefulWidget {
   final String email;
@@ -39,6 +34,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final User? user = Auth().currentUser;
   double lat = 0.0;
   double long = 0.0;
+  bool isRadarOn = false; // Estado del radar
+  late Timer _radarTimer; // Timer para desactivar el radar automáticamente
 
   late Users userInfo;
 
@@ -49,13 +46,6 @@ class _MyHomePageState extends State<MyHomePage> {
     mapController = MapsController(context);
 
     getCurrentPosition();
-    //refreshoMyPosition();
-  }
-
-  void refreshoMyPosition() {
-    Timer.periodic(Duration(minutes: 5), (timer) async {
-      getCurrentPosition();
-    });
   }
 
   getCurrentPosition() async {
@@ -86,9 +76,59 @@ class _MyHomePageState extends State<MyHomePage> {
       return Future.error(
           'Location permissions are permanently denied, we cannot request permissions.');
     }
-// When we reach here, permissions are granted and we can
+    // When we reach here, permissions are granted and we can
     // continue accessing the position of the device.
     return await Geolocator.getCurrentPosition();
+  }
+
+  Future<void> activateRadar() async {
+    if (isRadarOn) {
+      deactivateRadar;
+      return;
+    }
+
+    // Activar el radar
+    setState(() {
+      isRadarOn = true;
+    });
+
+    // Guardar en Firestore la hora de activación
+    await _activateRadarInFirestore();
+
+    // Iniciar el temporizador para desactivar el radar después de 1 hora
+    _radarTimer = Timer(Duration(hours: 1), deactivateRadar);
+  }
+
+  Future<void> deactivateRadar() async {
+    setState(() {
+      isRadarOn = false;
+    });
+
+    // Guardar el estado desactivado en Firestore
+    await _deactivateRadarInFirestore();
+  }
+
+  Future<void> _activateRadarInFirestore() async {
+    // Actualizar Firestore con el estado "activo" del radar y la hora de activación
+    // Aquí puedes poner la lógica para guardar estos datos en Firestore
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.email)
+        .update({
+      'radarActive': true,
+      'radarActivatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> _deactivateRadarInFirestore() async {
+    // Actualizar Firestore para desactivar el radar
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.email)
+        .update({
+      'radarActive': false,
+      'radarDeactivatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<void> signOut() async {
@@ -124,16 +164,6 @@ class _MyHomePageState extends State<MyHomePage> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  /* SearchScreen(
-                    selectedYacimiento: selectedYacimiento,
-                    onApply: (String name) {
-                      selectedYacimiento = name;
-                      BlocProvider.of<UsersBloc>(context)
-                          .add(LoadRescuedUsers(name));
-                      BlocProvider.of<UsersBloc>(context)
-                          .add(LoadOnFieldUsers(name));
-                    },
-                  ), */
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -165,14 +195,13 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           floatingActionButtonLocation:
               FloatingActionButtonLocation.centerDocked,
-        );
-      } else if (state is UsersOperationSuccess) {
-        return Center(
-            child: Shimmer(
-          child: Container(
-            color: Colors.deepPurple,
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: activateRadar,
+            label: Text(isRadarOn ? "Radar Activado" : "Activate Radar"),
+            icon: Icon(isRadarOn ? Icons.check_circle : Icons.radar),
+            backgroundColor: isRadarOn ? Colors.green : Colors.pinkAccent,
           ),
-        ));
+        );
       } else {
         return const Center(child: LinearProgressIndicator());
       }
@@ -186,7 +215,7 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           const DrawerHeader(
             child: Text(
-              "Firebase Auth",
+              "LoveRadar",
               style: TextStyle(fontSize: 24),
             ),
           ),

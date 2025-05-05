@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:i_am_single/src/home/controller/users_bloc/users_bloc.dart';
-import 'package:i_am_single/src/home/model/users_model.dart';
+import 'package:loveradar/src/home/controller/users_bloc/users_bloc.dart';
+import 'package:loveradar/src/home/model/users_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:loveradar/src/home/model/users_model.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -104,10 +105,73 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final picker = ImagePicker();
     final picked =
         await picker.pickMultiImage(); // Permite seleccionar múltiples imágenes
-    if (picked != null) {
+
+    if (picked != null && picked.isNotEmpty) {
       setState(() {
-        _imageFiles = picked.map((file) => File(file.path)).toList();
+        // Verifica si ya hay 5 imágenes, si es así, pregunta cuál reemplazar
+        if (_currentUser?.profileImages?.length == 5) {
+          _showReplaceImageDialog(picked);
+        } else {
+          // Si no hay 5 imágenes, simplemente las agrega
+          _imageFiles = picked.map((file) => File(file.path)).toList();
+        }
       });
+    }
+  }
+
+  void _showReplaceImageDialog(List<XFile> pickedImages) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("¿Qué imagen quieres reemplazar?"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(5, (index) {
+              return ListTile(
+                title: Text('Reemplazar imagen ${index + 1}'),
+                onTap: () {
+                  _replaceImage(index, pickedImages);
+                  Navigator.pop(context); // Cierra el diálogo
+                },
+              );
+            }),
+          ),
+        );
+      },
+    );
+  }
+
+  void _replaceImage(int index, List<XFile> pickedImages) async {
+    // Asegúrate de que la lista tenga al menos una imagen seleccionada
+    if (pickedImages.isNotEmpty) {
+      try {
+        final file = File(pickedImages[0]
+            .path); // Obtiene el archivo de la imagen seleccionada
+
+        // Subir la imagen a Firebase Storage
+        final ref = FirebaseStorage.instance.ref().child(
+            'images/${_user!.email}/${DateTime.now().millisecondsSinceEpoch}.jpg');
+        final uploadTask = await ref.putFile(file);
+        final snapshot = await uploadTask;
+
+        if (snapshot.state == TaskState.success) {
+          // Obtener la URL de la imagen subida
+          final url = await ref.getDownloadURL();
+
+          setState(() {
+            // Reemplazar el URL de la imagen en la posición seleccionada
+            _currentUser?.profileImages?[index] = url;
+          });
+        } else {
+          throw Exception("Error al subir la imagen");
+        }
+      } catch (e) {
+        print('Error al subir la imagen: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al subir la imagen: $e')),
+        );
+      }
     }
   }
 
@@ -115,7 +179,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (_formKey.currentState!.validate()) {
       List? imageUrls = [];
 
-      // Subir imágenes si es necesario
+      // Si el usuario seleccionó nuevas imágenes, las subimos
       if (_imageFiles.isNotEmpty) {
         imageUrls = await _uploadImages(_imageFiles);
       } else {
