@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:loveradar/src/home/controller/users_bloc/users_bloc.dart';
 import 'package:loveradar/src/home/model/users_model.dart';
+import 'package:loveradar/src/home/view/home_view/widgets/show_activate_radar_widget.dart';
 import 'package:loveradar/src/home/view/login_register/auth.dart';
 import 'package:lottie/lottie.dart';
 import 'package:loveradar/src/home/controller/field_controller.dart';
@@ -30,7 +31,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late final HomeViewController controller;
   late final MapsController mapController;
-  String selectedYacimiento = "";
+
   final User? user = Auth().currentUser;
   double lat = 0.0;
   double long = 0.0;
@@ -60,6 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
     userInfo = Users(email: widget.email, lat: lat, long: long);
 
     BlocProvider.of<UsersBloc>(context).add(UpdatePositionEvent(userInfo));
+    BlocProvider.of<UsersBloc>(context).add(LoadUsersEvent());
   }
 
   Future<Position> _determinePosition() async {
@@ -81,54 +83,78 @@ class _MyHomePageState extends State<MyHomePage> {
     return await Geolocator.getCurrentPosition();
   }
 
-  Future<void> activateRadar() async {
-    if (isRadarOn) {
-      deactivateRadar;
+  Future<void> activateRadar(String selectedMood) async {
+    final bloc = BlocProvider.of<UsersBloc>(context);
+    final currentState = bloc.state;
+
+    if (currentState is! UsersLoaded) return;
+
+    final user = currentState.currentUser;
+
+    // Si ya está activo y el tiempo no ha expirado, desactivamos
+    if (user.radarActive == true &&
+        user.radarUntil != null &&
+        user.radarUntil!.isAfter(DateTime.now())) {
+      deactivateRadar();
       return;
     }
 
-    // Activar el radar
-    setState(() {
-      isRadarOn = true;
-    });
+    final now = DateTime.now();
+    final until = now.add(const Duration(hours: 1));
 
-    // Guardar en Firestore la hora de activación
-    await _activateRadarInFirestore();
+    final updatedUser = Users(
+      id: user.id,
+      email: user.email,
+      radarMood: selectedMood,
+      bio: user.bio,
+      name: user.name,
+      lastName: user.lastName,
+      age: user.age,
+      birthDate: user.birthDate,
+      gender: user.gender,
+      profileImages: user.profileImages,
+      lat: user.lat,
+      long: user.long,
+      isPremium: user.isPremium,
+      visitedBy: user.visitedBy,
+      radarActive: true,
+      radarActivatedAt: now,
+      radarDeactivatedAt: null,
+      radarUntil: until,
+    );
 
-    // Iniciar el temporizador para desactivar el radar después de 1 hora
-    _radarTimer = Timer(Duration(hours: 1), deactivateRadar);
+    bloc.add(UpdateUserEvent(updatedUser));
   }
 
   Future<void> deactivateRadar() async {
-    setState(() {
-      isRadarOn = false;
-    });
+    final bloc = BlocProvider.of<UsersBloc>(context);
+    final currentState = bloc.state;
 
-    // Guardar el estado desactivado en Firestore
-    await _deactivateRadarInFirestore();
-  }
+    if (currentState is! UsersLoaded) return;
 
-  Future<void> _activateRadarInFirestore() async {
-    // Actualizar Firestore con el estado "activo" del radar y la hora de activación
-    // Aquí puedes poner la lógica para guardar estos datos en Firestore
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.email)
-        .update({
-      'radarActive': true,
-      'radarActivatedAt': FieldValue.serverTimestamp(),
-    });
-  }
+    final user = currentState.currentUser;
 
-  Future<void> _deactivateRadarInFirestore() async {
-    // Actualizar Firestore para desactivar el radar
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.email)
-        .update({
-      'radarActive': false,
-      'radarDeactivatedAt': FieldValue.serverTimestamp(),
-    });
+    final updatedUser = Users(
+      id: user.id,
+      email: user.email,
+      bio: user.bio,
+      name: user.name,
+      lastName: user.lastName,
+      age: user.age,
+      birthDate: user.birthDate,
+      gender: user.gender,
+      profileImages: user.profileImages,
+      lat: user.lat,
+      long: user.long,
+      isPremium: user.isPremium,
+      visitedBy: user.visitedBy,
+      radarActive: false,
+      radarActivatedAt: user.radarActivatedAt,
+      radarDeactivatedAt: DateTime.now(),
+      radarUntil: null,
+    );
+
+    bloc.add(UpdateUserEvent(updatedUser));
   }
 
   Future<void> signOut() async {
@@ -146,62 +172,78 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ));
       } else if (state is UsersLoaded) {
+        final user = state.currentUser;
+
         int numEnCampo = state.users.length;
 
         return Scaffold(
-          drawer: drawerMenu(),
-          appBar: AppBar(
-            backgroundColor: Colors.greenAccent,
-            title: Center(
-              child: Text(
-                'LoveRadar',
-                style: TextStyle(color: Colors.blueGrey[800], fontSize: 24),
+            drawer: drawerMenu(),
+            appBar: AppBar(
+              backgroundColor: Colors.greenAccent,
+              title: Center(
+                child: Text(
+                  'LoveRadar',
+                  style: TextStyle(color: Colors.blueGrey[800], fontSize: 24),
+                ),
               ),
             ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Vista general',
-                        style: TextStyle(
-                            color: Colors.blueGrey[600],
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold),
+            body: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Vista general',
+                          style: TextStyle(
+                              color: Colors.blueGrey[600],
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      materialCard(
-                          context,
-                          '/field',
-                          numEnCampo,
-                          'Solteros en la zona',
-                          'assets/lottie/campo.json',
-                          false),
-                    ],
-                  ),
-                  mapWidget(context, lat, long),
-                ],
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        materialCard(
+                            context,
+                            '/field',
+                            numEnCampo,
+                            'Solteros en la zona',
+                            'assets/lottie/campo.json',
+                            false),
+                      ],
+                    ),
+                    mapWidget(context, lat, long),
+                  ],
+                ),
               ),
             ),
-          ),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: activateRadar,
-            label: Text(isRadarOn ? "Radar Activado" : "Activate Radar"),
-            icon: Icon(isRadarOn ? Icons.check_circle : Icons.radar),
-            backgroundColor: isRadarOn ? Colors.green : Colors.pinkAccent,
-          ),
-        );
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
+            floatingActionButton: user.radarActive == true
+                ? FloatingActionButton.extended(
+                    //Boton para desactivar
+                    onPressed: () {
+                      deactivateRadar();
+                    },
+                    backgroundColor: Colors.redAccent,
+                    icon: const Icon(Icons.radar),
+                    label: const Text("Desactivar radar"),
+                  )
+                : FloatingActionButton.extended(
+                    //Boton para activar
+                    onPressed: () {
+                      showRadarIntroModal(context, (selectedMood) {
+                        activateRadar(selectedMood); // Pasamos el mood elegido
+                      });
+                    },
+                    backgroundColor: Colors.greenAccent,
+                    icon: const Icon(Icons.radar),
+                    label: const Text("Activar radar"),
+                  ));
       } else {
         return const Center(child: LinearProgressIndicator());
       }
@@ -261,76 +303,72 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget materialCard(BuildContext context, String ontap, int numItems,
       String type, String lottie, bool rescued) {
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, ontap,
-          arguments: {selectedYacimiento, rescued}),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.all(
-          Radius.circular(20),
+    return ClipRRect(
+      borderRadius: const BorderRadius.all(
+        Radius.circular(20),
+      ),
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
         ),
-        child: Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15.0),
+        elevation: 10,
+        child: Container(
+          height: MediaQuery.of(context).size.height / 7,
+          width: MediaQuery.of(context).size.width * 0.45,
+          decoration: const BoxDecoration(
+            color: Colors.blueGrey,
           ),
-          elevation: 10,
-          child: Container(
-            height: MediaQuery.of(context).size.height / 7,
-            width: MediaQuery.of(context).size.width * 0.45,
-            decoration: const BoxDecoration(
-              color: Colors.blueGrey,
-            ),
-            child: Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(30.0),
-                      ),
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(30.0),
                     ),
-                    width: MediaQuery.of(context).size.width / 6,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Lottie.asset(
-                        repeat: false,
-                        lottie,
-                      ),
+                  ),
+                  width: MediaQuery.of(context).size.width / 6,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Lottie.asset(
+                      repeat: false,
+                      lottie,
                     ),
                   ),
                 ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width / 4.5,
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              type,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                              ),
-                              maxLines: 2,
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4.5,
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            type,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
                             ),
+                            maxLines: 2,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      numItems.toString(),
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold),
-                    )
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                  Text(
+                    numItems.toString(),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold),
+                  )
+                ],
+              ),
+            ],
           ),
         ),
       ),

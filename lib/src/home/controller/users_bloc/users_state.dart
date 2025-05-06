@@ -9,8 +9,12 @@ class UsersLoading extends UsersState {}
 
 class UsersLoaded extends UsersState {
   final List<Users> users;
+  final Users currentUser;
 
-  UsersLoaded(this.users);
+  UsersLoaded({
+    required this.users,
+    required this.currentUser,
+  });
 }
 
 class UsersOperationSuccess extends UsersState {

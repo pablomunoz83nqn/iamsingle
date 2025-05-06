@@ -14,10 +14,13 @@ class Users {
   double? long;
   bool? isPremium;
   List? visitedBy;
+  String? radarMood;
 
-  // Nuevos campos
+  // Nuevos campos para el radar
   bool? radarActive;
   DateTime? radarActivatedAt;
+  DateTime? radarDeactivatedAt;
+  DateTime? radarUntil;
 
   Users({
     this.email,
@@ -35,6 +38,9 @@ class Users {
     this.visitedBy,
     this.radarActive,
     this.radarActivatedAt,
+    this.radarDeactivatedAt,
+    this.radarUntil,
+    this.radarMood,
   });
 
   factory Users.fromMap(Map<String, dynamic> data, String uid) {
@@ -47,6 +53,7 @@ class Users {
       age: data['age'],
       birthDate: data['birthDate'],
       gender: data['gender'],
+      radarMood: data['radarMood'],
       profileImages: data['profileImages'],
       lat: data['lat']?.toDouble(),
       long: data['long']?.toDouble(),
@@ -55,6 +62,12 @@ class Users {
       radarActive: data['radarActive'] ?? false,
       radarActivatedAt: data['radarActivatedAt'] != null
           ? (data['radarActivatedAt'] as Timestamp).toDate()
+          : null,
+      radarDeactivatedAt: data['radarDeactivatedAt'] != null
+          ? (data['radarDeactivatedAt'] as Timestamp).toDate()
+          : null,
+      radarUntil: data['radarUntil'] != null
+          ? (data['radarUntil'] as Timestamp).toDate()
           : null,
     );
   }
@@ -73,8 +86,20 @@ class Users {
       'long': long,
       'isPremium': isPremium,
       'visitedBy': visitedBy,
-      'radarActive': radarActive,
-      'radarActivatedAt': radarActivatedAt,
+      'radarActive': radarActive ?? false,
+      'radarActivatedAt': radarActivatedAt != null
+          ? Timestamp.fromDate(radarActivatedAt!)
+          : null,
+      'radarDeactivatedAt': radarDeactivatedAt != null
+          ? Timestamp.fromDate(radarDeactivatedAt!)
+          : null,
+      'radarUntil': radarUntil != null ? Timestamp.fromDate(radarUntil!) : null,
     };
+  }
+
+  bool isRadarExpired() {
+    if (radarActivatedAt == null) return true;
+    final difference = DateTime.now().difference(radarActivatedAt!);
+    return difference.inMinutes >= 60;
   }
 }

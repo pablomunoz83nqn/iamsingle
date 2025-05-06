@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'dart:ui';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:blurrycontainer/blurrycontainer.dart';
@@ -52,10 +53,56 @@ class _MapsPageState extends State<MapsPage> {
   final int _minClusterZoom = 0;
   final int _maxClusterZoom = 19;
   final User? currentUser = Auth().currentUser;
+  final List<Map<String, String>> moods = [
+    {'key': 'connect', 'emoji': '❤️', 'label': 'Conectar'},
+    {'key': 'chat', 'emoji': '💬', 'label': 'Charlar'},
+    {'key': 'support', 'emoji': '🫂', 'label': 'Necesito apoyo'},
+    {'key': 'celebrate', 'emoji': '🎉', 'label': 'Quiero celebrar'},
+    {'key': 'chill', 'emoji': '☕', 'label': 'Relajado'},
+  ];
 
   @override
   void initState() {
     super.initState();
+  }
+
+  Future<BitmapDescriptor> createUserPinWithMood({
+    required String gender,
+    required String emoji,
+    required String baseIconAssetPath, // asset del pin base (por género)
+    int size = 120,
+  }) async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final paint = Paint();
+
+    final baseIconData = await rootBundle.load(baseIconAssetPath);
+    final baseIcon =
+        await decodeImageFromList(baseIconData.buffer.asUint8List());
+
+    canvas.drawImageRect(
+      baseIcon,
+      Rect.fromLTWH(
+          0, 0, baseIcon.width.toDouble(), baseIcon.height.toDouble()),
+      Rect.fromLTWH(0, 0, size.toDouble(), size.toDouble()),
+      paint,
+    );
+
+    // Dibujar el emoji
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: emoji,
+        style: TextStyle(fontSize: size * 0.3), // tamaño del emoji
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(canvas, Offset(size * 0.65, size * 0.05));
+
+    final image = await recorder.endRecording().toImage(size, size);
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+
+    return BitmapDescriptor.fromBytes(bytes!.buffer.asUint8List());
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -70,21 +117,40 @@ class _MapsPageState extends State<MapsPage> {
 
   Future<void> _initMarkers() async {
     final List<MapMarker> markers = [];
+    // Filtrar usuarios con radar activo
+    final now = DateTime.now();
+    final filteredUsers = originalUsersList.where((user) {
+      final until = user.radarUntil;
+      return user.radarActive == true && until != null && until.isAfter(now);
+    }).toList();
 
-    for (final user in originalUsersList) {
+    for (final user in filteredUsers) {
       if (user.lat == null || user.long == null) continue;
 
       final isCurrentUser = user.email == currentUser?.email;
 
-      final markerImage = isCurrentUser
-          ? await bytesToBitmapDescriptor(
-              await createUserPinImage(_markerMEImageUrl))
-          : await MapHelper.getMarkerImageFromUrl(
-              targetWidth: 100,
-              user.gender?.toLowerCase() == 'masculino'
-                  ? _markerMaleImageUrl
-                  : _markerFemaleImageUrl,
-            );
+      BitmapDescriptor markerImage;
+
+      if (isCurrentUser) {
+        markerImage = await bytesToBitmapDescriptor(
+          await createUserPinImage(_markerMEImageUrl),
+        );
+      } else {
+        final genderIcon = user.gender?.toLowerCase() == 'masculino'
+            ? _markerMaleImageUrl
+            : _markerFemaleImageUrl;
+
+        final moodEmoji = moods.firstWhere(
+          (m) => m['key'] == user.radarMood,
+          orElse: () => {'emoji': '❓'},
+        )['emoji'] as String;
+
+        markerImage = await createUserPinWithMood(
+          gender: user.gender ?? 'otro',
+          emoji: moodEmoji,
+          baseIconAssetPath: genderIcon,
+        );
+      }
 
       markers.add(
         MapMarker(

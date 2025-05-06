@@ -3,17 +3,13 @@ part of 'users_bloc.dart';
 @immutable
 abstract class UsersEvent {}
 
-class LoadAllUsers extends UsersEvent {
-  String name;
-
-  LoadAllUsers(this.name);
+class LoadUsersEvent extends UsersEvent {
+  LoadUsersEvent();
 }
 
-class LoadOnFieldUsers extends UsersEvent {
-  String name;
+class ActivateRadarEvent extends UsersEvent {}
 
-  LoadOnFieldUsers(this.name);
-}
+class DeactivateRadarEvent extends UsersEvent {}
 
 class UpdateUserEvent extends UsersEvent {
   Users user;
