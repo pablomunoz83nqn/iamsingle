@@ -1,5 +1,4 @@
 import 'package:bloc/bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:loveradar/src/home/controller/users_controller.dart';
 import 'package:loveradar/src/home/model/users_model.dart';
 import 'package:loveradar/src/home/view/login_register/auth.dart';
@@ -186,17 +185,6 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
       try {
         emit(UsersLoading());
         await _firestoreService.updatePosition(event.user);
-        /* emit(UsersOperationSuccess('Users updated successfully.'));
-        emit(UsersLoading());
-        final users = await _firestoreService.getUsers().first;
-        final currentEmail = Auth().currentUser?.email;
-
-        final currentUser = users.firstWhere(
-          (u) => u.email == currentEmail,
-          orElse: () => throw Exception('Current user not found'),
-        );
-
-        emit(UsersLoaded(users: users, currentUser: currentUser)); */
       } catch (e) {
         if (e.toString().contains("not-found")) {
           emit(UsersLoading());

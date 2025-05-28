@@ -64,10 +64,10 @@ class MyApp extends StatelessWidget {
     }
 
     if (settings.name == '/editProfile') {
-      return _buildRoute(settings, EditProfilePage());
+      return _buildRoute(settings, const EditProfilePage());
     }
     if (settings.name == '/register') {
-      return _buildRoute(settings, RegisterFormScreen());
+      return _buildRoute(settings, const RegisterFormScreen());
     }
     return _buildRoute(settings, const WidgetTree());
   }

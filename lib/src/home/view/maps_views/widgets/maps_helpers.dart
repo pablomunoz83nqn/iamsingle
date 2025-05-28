@@ -21,21 +21,21 @@ class MapHelper {
     double size = 80,
   ]) async {
     final pictureRecorder = PictureRecorder();
-    final canvas =
-        Canvas(pictureRecorder, Rect.fromPoints(Offset(0, 0), Offset(80, 80)));
+    final canvas = Canvas(pictureRecorder,
+        Rect.fromPoints(const Offset(0, 0), const Offset(80, 80)));
 
     final paint = Paint()
       ..color = pointsSize > 10 ? Colors.red : Colors.blue
       ..style = PaintingStyle.fill;
 
     // Dibuja el círculo
-    canvas.drawCircle(Offset(40, 40), 30, paint);
+    canvas.drawCircle(const Offset(40, 40), 30, paint);
 
     // Dibuja el número en el centro
     final textPainter = TextPainter(
       text: TextSpan(
         text: pointsSize.toString(),
-        style: TextStyle(
+        style: const TextStyle(
             color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
       ),
       textDirection: TextDirection.ltr,

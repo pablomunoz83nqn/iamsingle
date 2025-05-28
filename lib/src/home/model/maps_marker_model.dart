@@ -6,9 +6,13 @@ class MapMarker extends Clusterable {
   final String id;
   final LatLng position;
   final BitmapDescriptor icon;
+  @override
   final bool isCluster;
+  @override
   final int? clusterId;
+  @override
   final int? pointsSize;
+  @override
   final String? childMarkerId;
   final Users? user; // 👈 esto es nuevo
 

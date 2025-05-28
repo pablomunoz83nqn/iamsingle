@@ -84,7 +84,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         final ref = FirebaseStorage.instance.ref().child(
             'images/${_user!.email}/${DateTime.now().millisecondsSinceEpoch}.jpg');
         final uploadTask = await ref.putFile(file);
-        final snapshot = await uploadTask;
+        final snapshot = uploadTask;
 
         if (snapshot.state == TaskState.success) {
           final url = await ref.getDownloadURL();
@@ -106,7 +106,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final picked =
         await picker.pickMultiImage(); // Permite seleccionar múltiples imágenes
 
-    if (picked != null && picked.isNotEmpty) {
+    if (picked.isNotEmpty) {
       setState(() {
         // Verifica si ya hay 5 imágenes, si es así, pregunta cuál reemplazar
         if (_currentUser?.profileImages?.length == 5) {
@@ -153,7 +153,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         final ref = FirebaseStorage.instance.ref().child(
             'images/${_user!.email}/${DateTime.now().millisecondsSinceEpoch}.jpg');
         final uploadTask = await ref.putFile(file);
-        final snapshot = await uploadTask;
+        final snapshot = uploadTask;
 
         if (snapshot.state == TaskState.success) {
           // Obtener la URL de la imagen subida

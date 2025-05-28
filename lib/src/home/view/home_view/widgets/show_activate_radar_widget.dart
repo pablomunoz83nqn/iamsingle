@@ -77,7 +77,7 @@ class _RadarIntroSheetState extends State<_RadarIntroSheet> {
                 label: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(mood['emoji']!, style: TextStyle(fontSize: 24)),
+                    Text(mood['emoji']!, style: const TextStyle(fontSize: 24)),
                     const SizedBox(width: 8),
                     Text(mood['label']!),
                   ],

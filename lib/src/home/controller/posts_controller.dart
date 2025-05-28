@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:loveradar/src/home/model/profile_model.dart';
-import 'package:loveradar/src/home/model/users_model.dart';
 
 class FirestoreServicePosts {
   final CollectionReference _postsCollection =

@@ -121,7 +121,7 @@ class _RegisterFormScreenState extends State<RegisterFormScreen> {
               onPressed: () {
                 Navigator.pushNamed(context, '/');
               },
-              child: Text("Ir al inicio"),
+              child: const Text("Ir al inicio"),
             ),
           ));
         } else if (state is UsersInitial) {

@@ -295,7 +295,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         child: SizedBox(
           height: MediaQuery.of(context).size.height / 2,
-          child: MapsPage(),
+          child: const MapsPage(),
         ),
       ),
     );

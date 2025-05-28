@@ -27,7 +27,7 @@ class _WidgetTreeState extends State<WidgetTree> {
               email: myObject.email!,
             );
           } else {
-            return LoginRegisterPage();
+            return const LoginRegisterPage();
           }
         });
   }

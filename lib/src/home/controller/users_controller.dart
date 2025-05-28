@@ -1,16 +1,37 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:loveradar/src/home/model/users_model.dart';
+import 'package:loveradar/src/home/view/login_register/auth.dart';
 
 class FirestoreServiceUsers {
   final CollectionReference usersCollection =
       FirebaseFirestore.instance.collection('users');
 
-  Stream<List<Users>> getUsers() {
-    return usersCollection.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  Stream<List<Users>> getUsers() async* {
+    final now = DateTime.now();
+    final currentEmail = Auth().currentUser?.email;
 
-        return Users(
+    if (currentEmail == null) {
+      yield [];
+      return;
+    }
+
+    await for (var snapshot in usersCollection
+        /* .where(
+          'radarActive',
+          isEqualTo: true,
+        ) */
+        .snapshots()) {
+      final users = <Users>[];
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final radarUntil = (data['radarUntil'] as Timestamp?)?.toDate();
+
+        /*  if (radarUntil != null && radarUntil.isBefore(now)) {
+          continue; // radar expirado
+        } */
+
+        users.add(Users(
           email: data['email'],
           lat: data['lat'],
           long: data['long'],
@@ -24,13 +45,50 @@ class FirestoreServiceUsers {
           profileImages: data['profileImages'],
           visitedBy: data['visitedBy'],
           radarActive: data['radarActive'],
+          radarMood: data['radarMood'],
           radarActivatedAt: (data['radarActivatedAt'] as Timestamp?)?.toDate(),
           radarDeactivatedAt:
               (data['radarDeactivatedAt'] as Timestamp?)?.toDate(),
-          radarUntil: (data['radarUntil'] as Timestamp?)?.toDate(),
-        );
-      }).toList();
-    });
+          radarUntil: radarUntil,
+        ));
+      }
+
+      final alreadyIncluded = users.any((u) => u.email == currentEmail);
+
+      if (!alreadyIncluded) {
+        // Buscamos al usuario actual directamente
+        final doc = await usersCollection
+            .where('email', isEqualTo: currentEmail)
+            .limit(1)
+            .get();
+        if (doc.docs.isNotEmpty) {
+          final data = doc.docs.first.data() as Map<String, dynamic>;
+          users.add(Users(
+            email: data['email'],
+            lat: data['lat'],
+            long: data['long'],
+            name: data['name'],
+            lastName: data['lastName'],
+            age: data['age'],
+            birthDate: data['birthDate'],
+            gender: data['gender'],
+            bio: data['bio'],
+            isPremium: data['isPremium'],
+            profileImages: data['profileImages'],
+            visitedBy: data['visitedBy'],
+            radarActive: data['radarActive'],
+            radarMood: data['radarMood'],
+            radarActivatedAt:
+                (data['radarActivatedAt'] as Timestamp?)?.toDate(),
+            radarDeactivatedAt:
+                (data['radarDeactivatedAt'] as Timestamp?)?.toDate(),
+            radarUntil: (data['radarUntil'] as Timestamp?)?.toDate(),
+          ));
+        }
+      }
+
+      yield users;
+    }
   }
 
   Future<void> updatePosition(Users user) {
@@ -75,6 +133,7 @@ class FirestoreServiceUsers {
     if (user.age != null) updateData['age'] = user.age;
     if (user.birthDate != null) updateData['birthDate'] = user.birthDate;
     if (user.gender != null) updateData['gender'] = user.gender;
+    if (user.radarMood != null) updateData['radarMood'] = user.radarMood;
     if (user.profileImages != null) {
       updateData['profileImages'] = user.profileImages;
     }
@@ -83,6 +142,7 @@ class FirestoreServiceUsers {
     if (user.isPremium != null) updateData['isPremium'] = user.isPremium;
     if (user.visitedBy != null) updateData['visitedBy'] = user.visitedBy;
     if (user.radarActive != null) updateData['radarActive'] = user.radarActive;
+    if (user.radarMood != null) updateData['radarMood'] = user.radarMood;
     if (user.radarActivatedAt != null) {
       updateData['radarActivatedAt'] =
           Timestamp.fromDate(user.radarActivatedAt!);

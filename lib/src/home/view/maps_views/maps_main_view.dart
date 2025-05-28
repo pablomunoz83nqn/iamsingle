@@ -35,7 +35,7 @@ class _MapsPageState extends State<MapsPage> {
   final PageController _controller = PageController();
 
   Fluster<MapMarker>? _clusterManager;
-  double _currentZoom = 10;
+  double _currentZoom = 15;
   bool _isMapLoading = true;
   bool _areMarkersLoading = true;
 
@@ -43,15 +43,13 @@ class _MapsPageState extends State<MapsPage> {
       'https://img.icons8.com/?size=100&id=rP5LDrmPHZBP&format=png&color=000000';
   final Color _clusterColor = Colors.blue;
   final Color _clusterTextColor = Colors.white;
-  final String _markerMaleImageUrl =
-      'https://img.icons8.com/ios-filled/50/user-male-circle.png';
-  final String _markerFemaleImageUrl =
-      'https://img.icons8.com/ios-filled/50/user-female-circle.png';
+  final String _markerMaleImageUrl = 'assets/user-male-circle.png';
+  final String _markerFemaleImageUrl = 'assets/user-female-circle.png';
 
   Users? _selectedUser;
 
-  final int _minClusterZoom = 0;
-  final int _maxClusterZoom = 19;
+  final int _minClusterZoom = 1;
+  final int _maxClusterZoom = 18;
   final User? currentUser = Auth().currentUser;
   final List<Map<String, String>> moods = [
     {'key': 'connect', 'emoji': '❤️', 'label': 'Conectar'},
@@ -124,7 +122,8 @@ class _MapsPageState extends State<MapsPage> {
       return user.radarActive == true && until != null && until.isAfter(now);
     }).toList();
 
-    for (final user in filteredUsers) {
+    //cambiar originalUsersList por filtered users para q aparezcan solo los de radar on
+    for (final user in originalUsersList) {
       if (user.lat == null || user.long == null) continue;
 
       final isCurrentUser = user.email == currentUser?.email;
@@ -287,7 +286,7 @@ class _MapsPageState extends State<MapsPage> {
                           },
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 5,
                       ),
                       SmoothPageIndicator(
@@ -386,7 +385,7 @@ class _MapsPageState extends State<MapsPage> {
     final ui.Image image = await loadUiImageFromNetwork(photoUrl);
     final src =
         Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
-    final dst = Rect.fromLTWH(25, 25, 100, 100);
+    const dst = Rect.fromLTWH(25, 25, 100, 100);
     canvas.drawImageRect(image, src, dst, Paint());
 
     final picture = recorder.endRecording();
@@ -424,6 +423,7 @@ class _MapsPageState extends State<MapsPage> {
               child: Shimmer(
             child: Container(
               color: Colors.deepPurple,
+              child: Center(child: Text("Cargando...(al amor de tu vida)")),
             ),
           ));
         } else if (state is UsersLoaded) {

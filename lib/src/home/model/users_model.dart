@@ -43,6 +43,48 @@ class Users {
     this.radarMood,
   });
 
+  Users copyWith({
+    String? id,
+    String? email,
+    double? lat,
+    double? long,
+    String? name,
+    String? lastName,
+    String? age,
+    String? birthDate,
+    String? gender,
+    String? bio,
+    bool? isPremium,
+    List<dynamic>? profileImages,
+    List<dynamic>? visitedBy,
+    bool? radarActive,
+    String? radarMood,
+    DateTime? radarActivatedAt,
+    DateTime? radarDeactivatedAt,
+    DateTime? radarUntil,
+  }) {
+    return Users(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      lat: lat ?? this.lat,
+      long: long ?? this.long,
+      name: name ?? this.name,
+      lastName: lastName ?? this.lastName,
+      age: age ?? this.age,
+      birthDate: birthDate ?? this.birthDate,
+      gender: gender ?? this.gender,
+      bio: bio ?? this.bio,
+      isPremium: isPremium ?? this.isPremium,
+      profileImages: profileImages ?? this.profileImages,
+      visitedBy: visitedBy ?? this.visitedBy,
+      radarActive: radarActive ?? this.radarActive,
+      radarMood: radarMood ?? this.radarMood,
+      radarActivatedAt: radarActivatedAt ?? this.radarActivatedAt,
+      radarDeactivatedAt: radarDeactivatedAt ?? this.radarDeactivatedAt,
+      radarUntil: radarUntil ?? this.radarUntil,
+    );
+  }
+
   factory Users.fromMap(Map<String, dynamic> data, String uid) {
     return Users(
       id: uid,
