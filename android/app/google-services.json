@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "212601785374",
+    "project_id": "i-am-single-95347",
+    "storage_bucket": "i-am-single-95347.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:212601785374:android:9c681d5be25e196607720f",
+        "android_client_info": {
+          "package_name": "com.app.iamsingle"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsRYcdWc8s2h38z52Zo_iFmnLDblYo_Ok"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:212601785374:android:b304884434d639a807720f",
+        "android_client_info": {
+          "package_name": "com.appargentinas.loveradar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsRYcdWc8s2h38z52Zo_iFmnLDblYo_Ok"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
