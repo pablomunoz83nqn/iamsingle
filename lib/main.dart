@@ -1,4 +1,3 @@
-import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,12 +18,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  await FirebaseAppCheck.instance
+  /* await FirebaseAppCheck.instance
       // Your personal reCaptcha public key goes here:
       .activate(
     androidProvider: AndroidProvider.debug,
     appleProvider: AppleProvider.debug,
-  );
+  ); */
   runApp(MultiBlocProvider(providers: [
     BlocProvider<UsersBloc>(
       create: (context) => UsersBloc(FirestoreServiceUsers()),

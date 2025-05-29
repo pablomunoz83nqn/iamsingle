@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.app.iamsingle</string>
+	<string>com.appargentinas.loveradar</string>
 	<key>PROJECT_ID</key>
 	<string>i-am-single-95347</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:212601785374:ios:4c6704eb1aec640507720f</string>
+	<string>1:212601785374:ios:abd467ffea07c01807720f</string>
 </dict>
 </plist>
