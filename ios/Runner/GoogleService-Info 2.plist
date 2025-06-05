@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyCS34X87GuwiGVIXTmAz1-nVxo5dvniM1M</string>
+	<key>GCM_SENDER_ID</key>
+	<string>669371784924</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.loveradar.app</string>
+	<key>PROJECT_ID</key>
+	<string>novedades-de-campo-tecpetrol</string>
+	<key>STORAGE_BUCKET</key>
+	<string>novedades-de-campo-tecpetrol.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:669371784924:ios:02c18505de48e3b59a5e19</string>
+	<key>DATABASE_URL</key>
+	<string>https://novedades-de-campo-tecpetrol.firebaseio.com</string>
+</dict>
+</plist>
