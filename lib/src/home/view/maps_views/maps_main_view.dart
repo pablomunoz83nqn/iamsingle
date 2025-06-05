@@ -115,14 +115,13 @@ class _MapsPageState extends State<MapsPage> {
 
   Future<void> _initMarkers() async {
     final List<MapMarker> markers = [];
-    // Filtrar usuarios con radar activo
-    final now = DateTime.now();
-    final filteredUsers = originalUsersList.where((user) {
-      final until = user.radarUntil;
-      return user.radarActive == true && until != null && until.isAfter(now);
-    }).toList();
+    // Por ahora dejamos todos los usuarios, sin filtrar por hora
+    // final now = DateTime.now();
+    // final filteredUsers = originalUsersList.where((user) {
+    //   final until = user.radarUntil;
+    //   return user.radarActive == true && until != null && until.isAfter(now);
+    // }).toList();
 
-    //cambiar originalUsersList por filtered users para q aparezcan solo los de radar on
     for (final user in originalUsersList) {
       if (user.lat == null || user.long == null) continue;
 
@@ -135,20 +134,36 @@ class _MapsPageState extends State<MapsPage> {
           await createUserPinImage(_markerMEImageUrl),
         );
       } else {
-        final genderIcon = user.gender?.toLowerCase() == 'masculino'
-            ? _markerMaleImageUrl
-            : _markerFemaleImageUrl;
-
         final moodEmoji = moods.firstWhere(
           (m) => m['key'] == user.radarMood,
           orElse: () => {'emoji': '❓'},
         )['emoji'] as String;
 
-        markerImage = await createUserPinWithMood(
-          gender: user.gender ?? 'otro',
-          emoji: moodEmoji,
-          baseIconAssetPath: genderIcon,
-        );
+        // Usar la primera foto de perfil si existe
+        final profilePhotoUrl =
+            (user.profileImages != null && user.profileImages!.isNotEmpty)
+                ? user.profileImages!.first
+                : null;
+
+        if (profilePhotoUrl != null && profilePhotoUrl.isNotEmpty) {
+          // Crear marcador con foto y emoji
+          final markerIcon = await createUserPinWithMoodAndPhoto(
+            moodEmoji,
+            profilePhotoUrl,
+          );
+          markerImage = BitmapDescriptor.fromBytes(markerIcon);
+        } else {
+          // Si no tiene foto, usar el icono de género como antes
+          final genderIcon = user.gender?.toLowerCase() == 'masculino'
+              ? _markerMaleImageUrl
+              : _markerFemaleImageUrl;
+
+          markerImage = await createUserPinWithMood(
+            gender: user.gender ?? 'otro',
+            emoji: moodEmoji,
+            baseIconAssetPath: genderIcon,
+          );
+        }
       }
 
       markers.add(
@@ -234,6 +249,38 @@ class _MapsPageState extends State<MapsPage> {
   }
 
   void _showUserDetails(Users user) {
+    // Verificamos si el usuario actual tiene al menos una foto
+    final hasPhoto =
+        user.profileImages != null && user.profileImages!.isNotEmpty;
+
+    if (!hasPhoto) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Foto requerida"),
+          content: const Text(
+            "No puedes ver fotos de otros usuarios si no has cargado al menos una tuya. Por favor, edita tu perfil y añade una foto.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo
+                Navigator.pushNamed(context, '/editProfile'); // Redirige
+              },
+              child: const Text("Editar perfil"),
+            ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(), // Cierra sin hacer nada
+              child: const Text("Cancelar"),
+            ),
+          ],
+        ),
+      );
+      return; // Sale del método y no muestra el BottomSheet
+    }
+
+    // Si tiene foto, mostrar el detalle como siempre
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -267,7 +314,7 @@ class _MapsPageState extends State<MapsPage> {
                   Column(
                     children: [
                       SizedBox(
-                        height: 500, // Controla el tamaño del carrusel
+                        height: 500,
                         child: PageView.builder(
                           controller: _controller,
                           itemCount: user.profileImages?.length ?? 1,
@@ -275,10 +322,7 @@ class _MapsPageState extends State<MapsPage> {
                             return ClipRRect(
                               borderRadius: BorderRadius.circular(20),
                               child: Image.network(
-                                user.profileImages?[index] ??
-                                    (user.gender?.toLowerCase() == 'masculino'
-                                        ? _markerMaleImageUrl
-                                        : _markerFemaleImageUrl),
+                                user.profileImages![index],
                                 fit: BoxFit.cover,
                                 width: double.infinity,
                               ),
@@ -286,24 +330,19 @@ class _MapsPageState extends State<MapsPage> {
                           },
                         ),
                       ),
-                      const SizedBox(
-                        height: 5,
-                      ),
+                      const SizedBox(height: 5),
                       SmoothPageIndicator(
-                        controller:
-                            _controller, // Asocia el controlador al indicador
+                        controller: _controller,
                         count: user.profileImages?.length ?? 1,
                         effect: const ExpandingDotsEffect(
-                          dotWidth: 10.0, // Tamaño de los puntos
-                          dotHeight: 10.0, // Tamaño de los puntos
-                          spacing: 8.0, // Espacio entre los puntos
-                          expansionFactor: 4.0, // Efecto de expansión
-                          dotColor:
-                              Colors.grey, // Color de los puntos inactivos
-                          activeDotColor:
-                              Colors.blue, // Color de los puntos activos
+                          dotWidth: 10.0,
+                          dotHeight: 10.0,
+                          spacing: 8.0,
+                          expansionFactor: 4.0,
+                          dotColor: Colors.grey,
+                          activeDotColor: Colors.blue,
                         ),
-                      )
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -360,6 +399,79 @@ class _MapsPageState extends State<MapsPage> {
         );
       },
     );
+  }
+
+  Future<Uint8List> createUserPinWithMoodAndPhoto(
+      String moodEmoji, String imageUrl) async {
+    const double size = 150;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    // Fondo transparente
+    final paint = Paint();
+
+    // Dibujar emoji centrado
+    final emojiTextPainter = TextPainter(
+      text: TextSpan(
+        text: moodEmoji,
+        style: const TextStyle(fontSize: 80),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    emojiTextPainter.layout();
+    emojiTextPainter.paint(
+      canvas,
+      Offset((size - emojiTextPainter.width) / 2, 10),
+    );
+
+    // Dibujar círculo con imagen abajo
+    const double imageSize = 50;
+    final double imageX = (size - imageSize) / 2;
+    final double imageY = size - imageSize - 10;
+
+    try {
+      final imageBytes = await _loadNetworkImage(imageUrl);
+      final codec = await ui.instantiateImageCodec(imageBytes,
+          targetWidth: imageSize.toInt(), targetHeight: imageSize.toInt());
+      final frame = await codec.getNextFrame();
+
+      final clipPath = Path()
+        ..addOval(Rect.fromLTWH(imageX, imageY, imageSize, imageSize));
+      canvas.save();
+      canvas.clipPath(clipPath);
+      canvas.drawImage(frame.image, Offset(imageX, imageY), paint);
+      canvas.restore();
+    } catch (e) {
+      // Si falla, dibuja un círculo gris con ícono de usuario
+      canvas.drawCircle(
+        Offset(size / 2, imageY + imageSize / 2),
+        imageSize / 2,
+        Paint()..color = Colors.grey,
+      );
+      final fallbackText = TextPainter(
+        text: const TextSpan(
+          text: '👤',
+          style: TextStyle(fontSize: 28),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      fallbackText.layout();
+      fallbackText.paint(
+        canvas,
+        Offset((size - fallbackText.width) / 2,
+            imageY + (imageSize - fallbackText.height) / 2),
+      );
+    }
+
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(size.toInt(), size.toInt());
+    final pngBytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    return pngBytes!.buffer.asUint8List();
+  }
+
+  Future<Uint8List> _loadNetworkImage(String imageUrl) async {
+    final response = await NetworkAssetBundle(Uri.parse(imageUrl)).load('');
+    return response.buffer.asUint8List();
   }
 
   Future<ui.Image> loadUiImageFromNetwork(String imageUrl) async {
@@ -423,7 +535,8 @@ class _MapsPageState extends State<MapsPage> {
               child: Shimmer(
             child: Container(
               color: Colors.deepPurple,
-              child: Center(child: Text("Cargando...(al amor de tu vida)")),
+              child:
+                  const Center(child: Text("Cargando...(al amor de tu vida)")),
             ),
           ));
         } else if (state is UsersLoaded) {

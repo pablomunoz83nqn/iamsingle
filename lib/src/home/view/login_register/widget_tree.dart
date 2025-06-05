@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:loveradar/src/home/model/users_model.dart';
 import 'package:loveradar/src/home/view/home_view/home_admin_view.dart';
 import 'package:loveradar/src/home/view/login_register/auth.dart';
 import 'package:loveradar/src/home/view/login_register/login_register_page.dart';

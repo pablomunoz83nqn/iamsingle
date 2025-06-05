@@ -9,12 +9,10 @@ import 'package:loveradar/src/home/view/home_view/widgets/show_activate_radar_wi
 import 'package:loveradar/src/home/view/login_register/auth.dart';
 import 'package:lottie/lottie.dart';
 import 'package:loveradar/src/home/controller/field_controller.dart';
-import 'package:loveradar/src/home/controller/posts_bloc/posts_bloc.dart';
 import 'package:loveradar/src/home/view/edit_profile_view/edit_profile_page.dart';
 import 'package:loveradar/src/home/view/maps_views/maps_controller.dart';
 import 'package:loveradar/src/home/view/maps_views/maps_main_view.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MyHomePage extends StatefulWidget {
   final String email;
@@ -168,6 +166,10 @@ class _MyHomePageState extends State<MyHomePage> {
         return Center(
             child: Shimmer(
           child: Container(
+            height: 200,
+            child: Center(
+              child: Text("Cargando mapa"),
+            ),
             color: Colors.deepPurple,
           ),
         ));
