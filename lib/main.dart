@@ -2,8 +2,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:loveradar/src/home/controller/posts_bloc/posts_bloc.dart';
-import 'package:loveradar/src/home/controller/posts_controller.dart';
 import 'package:loveradar/src/home/controller/users_bloc/users_bloc.dart';
 import 'package:loveradar/src/home/controller/users_controller.dart';
 
@@ -27,9 +25,6 @@ Future<void> main() async {
   runApp(MultiBlocProvider(providers: [
     BlocProvider<UsersBloc>(
       create: (context) => UsersBloc(FirestoreServiceUsers()),
-    ),
-    BlocProvider<PostsBloc>(
-      create: (context) => PostsBloc(FirestoreServicePosts()),
     ),
   ], child: const MyApp()));
 }

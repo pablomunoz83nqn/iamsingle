@@ -55,7 +55,7 @@ class FirestoreServiceUsers {
 
       final alreadyIncluded = users.any((u) => u.email == currentEmail);
 
-      if (!alreadyIncluded) {
+      /* if (!alreadyIncluded) {
         // Buscamos al usuario actual directamente
         final doc = await usersCollection
             .where('email', isEqualTo: currentEmail)
@@ -85,7 +85,7 @@ class FirestoreServiceUsers {
             radarUntil: (data['radarUntil'] as Timestamp?)?.toDate(),
           ));
         }
-      }
+      } */
 
       yield users;
     }

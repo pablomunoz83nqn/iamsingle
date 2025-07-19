@@ -63,5 +63,11 @@
 	<false/>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Necesitamos acceso a tu red local para depuración durante el desarrollo.</string>
+    <key>NSBonjourServices</key>
+    <array>
+        <string>_dartobservatory._tcp</string>
+    </array>
 </dict>
 </plist>

@@ -8,7 +8,7 @@ import 'package:loveradar/src/home/model/users_model.dart';
 import 'package:loveradar/src/home/view/home_view/widgets/show_activate_radar_widget.dart';
 import 'package:loveradar/src/home/view/login_register/auth.dart';
 import 'package:lottie/lottie.dart';
-import 'package:loveradar/src/home/controller/field_controller.dart';
+
 import 'package:loveradar/src/home/view/edit_profile_view/edit_profile_page.dart';
 import 'package:loveradar/src/home/view/maps_views/maps_controller.dart';
 import 'package:loveradar/src/home/view/maps_views/maps_main_view.dart';
@@ -27,7 +27,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late final HomeViewController controller;
   late final MapsController mapController;
 
   final User? user = Auth().currentUser;
@@ -38,13 +37,27 @@ class _MyHomePageState extends State<MyHomePage> {
 
   late Users userInfo;
 
+  late Timer _locationUpdateTimer;
   @override
   void initState() {
     super.initState();
-    controller = HomeViewController(context);
+
     mapController = MapsController(context);
 
     getCurrentPosition();
+    startTrackingLocation();
+  }
+
+  void startTrackingLocation() {
+    _locationUpdateTimer = Timer.periodic(Duration(seconds: 60), (_) async {
+      final position = await _determinePosition();
+      final updatedUser = Users(
+        email: widget.email,
+        lat: position.latitude,
+        long: position.longitude,
+      );
+      BlocProvider.of<UsersBloc>(context).add(UpdatePositionEvent(updatedUser));
+    });
   }
 
   getCurrentPosition() async {
@@ -166,17 +179,15 @@ class _MyHomePageState extends State<MyHomePage> {
         return Center(
             child: Shimmer(
           child: Container(
-            height: 200,
+            height: 300,
+            color: Colors.white,
             child: Center(
-              child: Text("Cargando mapa"),
+              child: Image.asset("assets/loveRadarLogoMini.png"),
             ),
-            color: Colors.deepPurple,
           ),
         ));
       } else if (state is UsersLoaded) {
         final user = state.currentUser;
-
-        int numEnCampo = state.users.length;
 
         return Scaffold(
             drawer: drawerMenu(),
@@ -205,18 +216,6 @@ class _MyHomePageState extends State<MyHomePage> {
                               fontWeight: FontWeight.bold),
                         ),
                       ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        materialCard(
-                            context,
-                            '/field',
-                            numEnCampo,
-                            'Solteros en la zona',
-                            'assets/lottie/campo.json',
-                            false),
-                      ],
                     ),
                     mapWidget(context, lat, long),
                   ],

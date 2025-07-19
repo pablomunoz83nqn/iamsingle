@@ -4,8 +4,7 @@ import 'dart:ui' as ui;
 import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-
-import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluster/fluster.dart';
 import 'package:flutter/material.dart';
@@ -39,8 +38,7 @@ class _MapsPageState extends State<MapsPage> {
   bool _isMapLoading = true;
   bool _areMarkersLoading = true;
 
-  final String _markerMEImageUrl =
-      'https://img.icons8.com/?size=100&id=rP5LDrmPHZBP&format=png&color=000000';
+  final String _markerMEImageUrl = 'assets/pin.png';
   final Color _clusterColor = Colors.blue;
   final Color _clusterTextColor = Colors.white;
   final String _markerMaleImageUrl = 'assets/user-male-circle.png';
@@ -59,6 +57,7 @@ class _MapsPageState extends State<MapsPage> {
     {'key': 'chill', 'emoji': '☕', 'label': 'Relajado'},
   ];
 
+  bool _markersInitialized = false;
   @override
   void initState() {
     super.initState();
@@ -131,7 +130,7 @@ class _MapsPageState extends State<MapsPage> {
 
       if (isCurrentUser) {
         markerImage = await bytesToBitmapDescriptor(
-          await createUserPinImage(_markerMEImageUrl),
+          await createUserPinImageFromAsset(_markerMEImageUrl),
         );
       } else {
         final moodEmoji = moods.firstWhere(
@@ -182,7 +181,7 @@ class _MapsPageState extends State<MapsPage> {
       _maxClusterZoom,
     );
 
-    await updateMarkers();
+    // await updateMarkers();
   }
 
   Future<BitmapDescriptor> bytesToBitmapDescriptor(Uint8List bytes) async {
@@ -194,6 +193,7 @@ class _MapsPageState extends State<MapsPage> {
 
     if (updatedZoom != null) _currentZoom = updatedZoom;
 
+    if (!mounted) return;
     setState(() {
       _areMarkersLoading = true;
     });
@@ -249,11 +249,14 @@ class _MapsPageState extends State<MapsPage> {
   }
 
   void _showUserDetails(Users user) {
-    // Verificamos si el usuario actual tiene al menos una foto
-    final hasPhoto =
-        user.profileImages != null && user.profileImages!.isNotEmpty;
+    // 👇 Cambiar: verificar si el USUARIO ACTUAL tiene fotos
+    final Users? currentUserFull = originalUsersList
+        .firstWhereOrNull((u) => u.email == currentUser?.email);
 
-    if (!hasPhoto) {
+    final currentUserHasPhoto =
+        currentUserFull?.profileImages?.isNotEmpty == true;
+
+    if (!currentUserHasPhoto) {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
@@ -264,20 +267,19 @@ class _MapsPageState extends State<MapsPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Cierra el diálogo
-                Navigator.pushNamed(context, '/editProfile'); // Redirige
+                Navigator.of(context).pop();
+                Navigator.pushNamed(context, '/editProfile');
               },
               child: const Text("Editar perfil"),
             ),
             TextButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(), // Cierra sin hacer nada
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text("Cancelar"),
             ),
           ],
         ),
       );
-      return; // Sale del método y no muestra el BottomSheet
+      return;
     }
 
     // Si tiene foto, mostrar el detalle como siempre
@@ -315,20 +317,43 @@ class _MapsPageState extends State<MapsPage> {
                     children: [
                       SizedBox(
                         height: 500,
-                        child: PageView.builder(
-                          controller: _controller,
-                          itemCount: user.profileImages?.length ?? 1,
-                          itemBuilder: (context, index) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(20),
-                              child: Image.network(
-                                user.profileImages![index],
-                                fit: BoxFit.cover,
+                        child: (user.profileImages != null &&
+                                user.profileImages!.isNotEmpty)
+                            ? PageView.builder(
+                                controller: _controller,
+                                itemCount: user.profileImages!.length,
+                                itemBuilder: (context, index) {
+                                  return ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Image.network(
+                                      user.profileImages![index],
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                    ),
+                                  );
+                                },
+                              )
+                            : Container(
                                 width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.photo_camera_outlined,
+                                        size: 100, color: Colors.grey),
+                                    SizedBox(height: 20),
+                                    Text(
+                                      'Este usuario aún no ha subido fotos',
+                                      style: TextStyle(
+                                          fontSize: 18, color: Colors.grey),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
                               ),
-                            );
-                          },
-                        ),
                       ),
                       const SizedBox(height: 5),
                       SmoothPageIndicator(
@@ -426,8 +451,8 @@ class _MapsPageState extends State<MapsPage> {
 
     // Dibujar círculo con imagen abajo
     const double imageSize = 50;
-    final double imageX = (size - imageSize) / 2;
-    final double imageY = size - imageSize - 10;
+    const double imageX = (size - imageSize) / 2;
+    const double imageY = size - imageSize - 10;
 
     try {
       final imageBytes = await _loadNetworkImage(imageUrl);
@@ -474,15 +499,7 @@ class _MapsPageState extends State<MapsPage> {
     return response.buffer.asUint8List();
   }
 
-  Future<ui.Image> loadUiImageFromNetwork(String imageUrl) async {
-    final http.Response response = await http.get(Uri.parse(imageUrl));
-    final Uint8List bytes = response.bodyBytes;
-    final codec = await ui.instantiateImageCodec(bytes);
-    final frame = await codec.getNextFrame();
-    return frame.image;
-  }
-
-  Future<Uint8List> createUserPinImage(String photoUrl) async {
+  Future<Uint8List> createUserPinImageFromAsset(String assetPath) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     const Size size = Size(150, 150);
@@ -493,13 +510,20 @@ class _MapsPageState extends State<MapsPage> {
       ..style = PaintingStyle.fill;
     canvas.drawCircle(size.center(Offset.zero), 75, pulsePaint);
 
-    // Imagen central
-    final ui.Image image = await loadUiImageFromNetwork(photoUrl);
+    // Cargar imagen del asset
+    final ByteData data = await rootBundle.load(assetPath);
+    final ui.Codec codec =
+        await ui.instantiateImageCodec(data.buffer.asUint8List());
+    final ui.FrameInfo frame = await codec.getNextFrame();
+    final ui.Image image = frame.image;
+
+    // Posicionar imagen en el centro
     final src =
         Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
     const dst = Rect.fromLTWH(25, 25, 100, 100);
     canvas.drawImageRect(image, src, dst, Paint());
 
+    // Finalizar
     final picture = recorder.endRecording();
     final img = await picture.toImage(size.width.toInt(), size.height.toInt());
     final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
@@ -540,8 +564,10 @@ class _MapsPageState extends State<MapsPage> {
             ),
           ));
         } else if (state is UsersLoaded) {
-          if (originalUsersList != state.users) {
-            originalUsersList = state.users;
+          if (_markersInitialized == false) {
+            _markersInitialized = true; // ✅ evita futuras ejecuciones
+
+            originalUsersList = List.from(state.users);
             markerLocations.clear();
             for (var u in originalUsersList) {
               if (u.lat != null && u.long != null) {

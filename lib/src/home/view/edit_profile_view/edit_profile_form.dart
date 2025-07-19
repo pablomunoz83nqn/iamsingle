@@ -147,13 +147,13 @@ class _EditProfileFormState extends State<EditProfileForm> {
                   return GridView(
                     key: _gridViewKey,
                     controller: _scrollController,
-                    children: children,
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 4,
                       mainAxisSpacing: 4,
                       crossAxisSpacing: 8,
                     ),
+                    children: children,
                   );
                 },
                 children: generatedChildren,
