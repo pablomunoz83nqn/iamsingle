@@ -183,11 +183,20 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
 
     on<UpdatePositionEvent>((event, emit) async {
       try {
-        emit(UsersLoading());
         await _firestoreService.updatePosition(event.user);
+
+        // Opcional: podés actualizar solo currentUser si ya tenés el resto
+        final currentEmail = Auth().currentUser?.email;
+        final updatedUsers = await _firestoreService.getUsers().first;
+
+        final currentUser = updatedUsers.firstWhere(
+          (u) => u.email == currentEmail,
+          orElse: () => throw Exception('Current user not found'),
+        );
+
+        emit(UsersLoaded(users: updatedUsers, currentUser: currentUser));
       } catch (e) {
         if (e.toString().contains("not-found")) {
-          emit(UsersLoading());
           await _firestoreService.addUser(event.user);
           final users = await _firestoreService.getUsers().first;
           final currentEmail = Auth().currentUser?.email;
@@ -199,7 +208,7 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
 
           emit(UsersLoaded(users: users, currentUser: currentUser));
         } else {
-          emit(UsersError('Error en edicion, por favor reinicie la app'));
+          emit(UsersError('Error en edición, por favor reiniciá la app'));
         }
       }
     });

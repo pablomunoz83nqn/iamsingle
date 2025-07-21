@@ -10,7 +10,7 @@ import 'package:loveradar/src/home/view/login_register/auth.dart';
 import 'package:lottie/lottie.dart';
 
 import 'package:loveradar/src/home/view/edit_profile_view/edit_profile_page.dart';
-import 'package:loveradar/src/home/view/maps_views/maps_controller.dart';
+
 import 'package:loveradar/src/home/view/maps_views/maps_main_view.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
@@ -27,8 +27,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late final MapsController mapController;
-
   final User? user = Auth().currentUser;
   double lat = 0.0;
   double long = 0.0;
@@ -38,12 +36,12 @@ class _MyHomePageState extends State<MyHomePage> {
   late Users userInfo;
 
   late Timer _locationUpdateTimer;
+  late final MapsPage _mapsPage;
   @override
   void initState() {
     super.initState();
 
-    mapController = MapsController(context);
-
+    _mapsPage = const MapsPage();
     getCurrentPosition();
     startTrackingLocation();
   }
@@ -61,18 +59,20 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   getCurrentPosition() async {
-    Position position = await _determinePosition();
+    final position = await _determinePosition();
 
-    setState(() {
-      position = position;
-      lat = position.latitude;
-      long = position.longitude;
-    });
+    lat = position.latitude;
+    long = position.longitude;
 
     userInfo = Users(email: widget.email, lat: lat, long: long);
 
     BlocProvider.of<UsersBloc>(context).add(UpdatePositionEvent(userInfo));
-    BlocProvider.of<UsersBloc>(context).add(LoadUsersEvent());
+
+    // Solo cargar usuarios si no están cargados aún
+    final state = BlocProvider.of<UsersBloc>(context).state;
+    if (state is! UsersLoaded) {
+      BlocProvider.of<UsersBloc>(context).add(LoadUsersEvent());
+    }
   }
 
   Future<Position> _determinePosition() async {
@@ -296,7 +296,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         child: SizedBox(
           height: MediaQuery.of(context).size.height / 2,
-          child: const MapsPage(),
+          child: _mapsPage,
         ),
       ),
     );

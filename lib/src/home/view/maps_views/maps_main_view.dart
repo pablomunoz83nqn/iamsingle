@@ -49,6 +49,7 @@ class _MapsPageState extends State<MapsPage> {
   final int _minClusterZoom = 1;
   final int _maxClusterZoom = 18;
   final User? currentUser = Auth().currentUser;
+  Users myInfo = Users();
   final List<Map<String, String>> moods = [
     {'key': 'connect', 'emoji': '❤️', 'label': 'Conectar'},
     {'key': 'chat', 'emoji': '💬', 'label': 'Charlar'},
@@ -58,16 +59,115 @@ class _MapsPageState extends State<MapsPage> {
   ];
 
   bool _markersInitialized = false;
+
+  GoogleMap _googleMap = GoogleMap(
+    initialCameraPosition: CameraPosition(target: LatLng(0.0, 0.0)),
+  );
+
   @override
   void initState() {
     super.initState();
   }
 
+  void _initFromState(UsersLoaded state) async {
+    if (_markersInitialized) return;
+    _markersInitialized = true;
+
+    myInfo = state.currentUser;
+    originalUsersList = List.from(state.users);
+    markerLocations.clear();
+
+    for (var u in originalUsersList) {
+      if (u.lat != null && u.long != null) {
+        markerLocations.add(LatLng(u.lat!, u.long!));
+      }
+    }
+
+    await _initMarkers();
+    await updateMarkers();
+
+    if (mounted) {
+      setState(() {
+        _googleMap = GoogleMap(
+          key: UniqueKey(),
+          mapToolbarEnabled: true,
+          zoomControlsEnabled: true,
+          initialCameraPosition: cameraPosition(),
+          markers: _markers,
+          onMapCreated: _onMapCreated,
+          onCameraMove: (position) => updateMarkers(position.zoom),
+        );
+        _isMapLoading = false;
+        _areMarkersLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<UsersBloc, UsersState>(
+      builder: (context, state) {
+        if (state is UsersLoading) {
+          return Center(
+            child: Shimmer(
+              child: Container(
+                color: Colors.deepPurple,
+                child: const Center(
+                    child: Text("Cargando...(al amor de tu vida)")),
+              ),
+            ),
+          );
+        } else if (state is UsersLoaded) {
+          _initFromState(state);
+          return Stack(
+            children: [
+              Opacity(opacity: _isMapLoading ? 0 : 1, child: _googleMap),
+              if (_isMapLoading)
+                Center(
+                  child: Shimmer(
+                    child: Container(
+                      color: Colors.deepPurple,
+                    ),
+                  ),
+                ),
+              if (_areMarkersLoading)
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Card(
+                    color: Colors.grey.shade800,
+                    margin: const EdgeInsets.all(8),
+                    child: const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      child: Text("Cargando marcadores",
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        } else if (state is UsersError) {
+          return Center(child: Text(state.errorMessage));
+        } else {
+          return const SizedBox.shrink();
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // Resto del código intacto: _onMapCreated, _initMarkers, updateMarkers, etc.
+
   Future<BitmapDescriptor> createUserPinWithMood({
     required String gender,
     required String emoji,
     required String baseIconAssetPath, // asset del pin base (por género)
-    int size = 120,
+    int size = 100,
   }) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
@@ -89,7 +189,7 @@ class _MapsPageState extends State<MapsPage> {
     final textPainter = TextPainter(
       text: TextSpan(
         text: emoji,
-        style: TextStyle(fontSize: size * 0.3), // tamaño del emoji
+        style: TextStyle(fontSize: size * 0.6), // tamaño del emoji
       ),
       textDirection: TextDirection.ltr,
     );
@@ -103,13 +203,14 @@ class _MapsPageState extends State<MapsPage> {
   }
 
   void _onMapCreated(GoogleMapController controller) {
-    if (!_mapController.isCompleted) _mapController.complete(controller);
-
-    setState(() {
-      _isMapLoading = false;
-    });
-
-    _initMarkers();
+    try {
+      if (!_mapController.isCompleted) {
+        _mapController.complete(controller);
+      }
+      setState(() => _isMapLoading = false);
+    } catch (e) {
+      debugPrint("❌ Error en _onMapCreated: $e");
+    }
   }
 
   Future<void> _initMarkers() async {
@@ -181,7 +282,7 @@ class _MapsPageState extends State<MapsPage> {
       _maxClusterZoom,
     );
 
-    // await updateMarkers();
+    await updateMarkers();
   }
 
   Future<BitmapDescriptor> bytesToBitmapDescriptor(Uint8List bytes) async {
@@ -329,6 +430,23 @@ class _MapsPageState extends State<MapsPage> {
                                       user.profileImages![index],
                                       fit: BoxFit.cover,
                                       width: double.infinity,
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return const Center(
+                                          child: Padding(
+                                            padding: EdgeInsets.all(20),
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Center(
+                                        child: Icon(Icons.broken_image,
+                                            size: 100, color: Colors.grey),
+                                      ),
                                     ),
                                   );
                                 },
@@ -439,18 +557,15 @@ class _MapsPageState extends State<MapsPage> {
     final emojiTextPainter = TextPainter(
       text: TextSpan(
         text: moodEmoji,
-        style: const TextStyle(fontSize: 80),
+        style: const TextStyle(fontSize: 60),
       ),
       textDirection: TextDirection.ltr,
     );
     emojiTextPainter.layout();
-    emojiTextPainter.paint(
-      canvas,
-      Offset((size - emojiTextPainter.width) / 2, 10),
-    );
+    emojiTextPainter.paint(canvas, const Offset(10, 10));
 
     // Dibujar círculo con imagen abajo
-    const double imageSize = 50;
+    const double imageSize = 60;
     const double imageX = (size - imageSize) / 2;
     const double imageY = size - imageSize - 10;
 
@@ -532,93 +647,10 @@ class _MapsPageState extends State<MapsPage> {
   }
 
   CameraPosition cameraPosition() {
-    double promLat = 0.0;
-    double promLong = 0.0;
-
-    if (markerLocations.isNotEmpty) {
-      for (var lat in markerLocations) {
-        promLat += lat.latitude;
-        promLong += lat.longitude;
-      }
-      promLat /= markerLocations.length;
-      promLong /= markerLocations.length;
-    }
-
+    print("MyInfo: ${myInfo.lat}, ${myInfo.long}");
     return CameraPosition(
-      target: LatLng(promLat, promLong),
+      target: LatLng(myInfo.lat!, myInfo.long!),
       zoom: _currentZoom,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<UsersBloc, UsersState>(
-      builder: (context, state) {
-        if (state is UsersLoading) {
-          return Center(
-              child: Shimmer(
-            child: Container(
-              color: Colors.deepPurple,
-              child:
-                  const Center(child: Text("Cargando...(al amor de tu vida)")),
-            ),
-          ));
-        } else if (state is UsersLoaded) {
-          if (_markersInitialized == false) {
-            _markersInitialized = true; // ✅ evita futuras ejecuciones
-
-            originalUsersList = List.from(state.users);
-            markerLocations.clear();
-            for (var u in originalUsersList) {
-              if (u.lat != null && u.long != null) {
-                markerLocations.add(LatLng(u.lat!, u.long!));
-              }
-            }
-            _initMarkers();
-          }
-
-          return Stack(
-            children: [
-              Opacity(
-                opacity: _isMapLoading ? 0 : 1,
-                child: GoogleMap(
-                  mapToolbarEnabled: true,
-                  zoomControlsEnabled: true,
-                  initialCameraPosition: cameraPosition(),
-                  markers: _markers,
-                  onMapCreated: _onMapCreated,
-                  onCameraMove: (position) => updateMarkers(position.zoom),
-                ),
-              ),
-              if (_isMapLoading)
-                Center(
-                    child: Shimmer(
-                  child: Container(
-                    color: Colors.deepPurple,
-                  ),
-                )),
-              if (_areMarkersLoading)
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Card(
-                    color: Colors.grey.shade800,
-                    margin: const EdgeInsets.all(8),
-                    child: const Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      child: Text("Cargando marcadores",
-                          style: TextStyle(color: Colors.white)),
-                    ),
-                  ),
-                ),
-            ],
-          );
-        } else if (state is UsersError) {
-          return Center(child: Text(state.errorMessage));
-        } else {
-          return const SizedBox.shrink();
-        }
-      },
     );
   }
 }
