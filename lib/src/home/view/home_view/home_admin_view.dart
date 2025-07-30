@@ -16,8 +16,9 @@ import 'package:shimmer_animation/shimmer_animation.dart';
 
 class MyHomePage extends StatefulWidget {
   final String email;
+  final Key _mapKey = UniqueKey();
 
-  const MyHomePage({
+  MyHomePage({
     Key? key,
     required this.email,
   }) : super(key: key);
@@ -31,17 +32,16 @@ class _MyHomePageState extends State<MyHomePage> {
   double lat = 0.0;
   double long = 0.0;
   bool isRadarOn = false; // Estado del radar
-  late Timer _radarTimer; // Timer para desactivar el radar automáticamente
+  // Timer para desactivar el radar automáticamente
 
   late Users userInfo;
 
   late Timer _locationUpdateTimer;
-  late final MapsPage _mapsPage;
+
   @override
   void initState() {
     super.initState();
 
-    _mapsPage = const MapsPage();
     getCurrentPosition();
     startTrackingLocation();
   }
@@ -172,7 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await Auth().signOut();
   }
 
-  @override
+  /* @override
   Widget build(BuildContext context) {
     return BlocBuilder<UsersBloc, UsersState>(builder: (context, state) {
       if (state is UsersLoading) {
@@ -249,6 +249,202 @@ class _MyHomePageState extends State<MyHomePage> {
         return const Center(child: LinearProgressIndicator());
       }
     });
+  } */
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<UsersBloc, UsersState>(builder: (context, state) {
+      if (state is UsersLoading) {
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      } else if (state is UsersLoaded) {
+        final user = state.currentUser;
+
+        return Scaffold(
+          body: Stack(
+            children: [
+              // 📍 MAPA DE FONDO
+              Positioned.fill(
+                child: MapsPage(widgetKey: widget._mapKey),
+              ),
+              // 😎 MOOD SELECCIONADO ARRIBA A LA DERECHA
+              if (user.radarMood != null)
+                Positioned(
+                  top: 40,
+                  right: 20,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          user.radarActive == true && user.radarMood != null
+                              ? getMoodData(user.radarMood!)['emoji']!
+                              : '🔌',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          user.radarActive == true && user.radarMood != null
+                              ? getMoodData(user.radarMood!)['label']!
+                              : 'Estás desconectado',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              // 👤 CARD DE USUARIO ESTILO TINDER
+              Positioned(
+                bottom: 120,
+                left: 16,
+                right: 16,
+                child: Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [Colors.black87, Colors.transparent],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            "${user.name ?? ''}, ${user.age ?? ''}",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          if (user.isPremium == true)
+                            Icon(Icons.verified, color: Colors.blueAccent),
+                        ],
+                      ),
+                      if (user.bio != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            user.bio!,
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                      if (user.radarMood != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            "Mood: ${user.radarMood}",
+                            style: TextStyle(color: Colors.white54),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ⚡ BOTONES INFERIORES ESTILO TINDER
+              Positioned(
+                bottom: 30,
+                left: 0,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _circleIcon(Icons.replay, Colors.orange, onTap: () {
+                      // Función futura
+                    }),
+                    _circleIcon(Icons.clear, Colors.red, onTap: () {
+                      signOut(); // O comentá esta línea si no querés logout acá
+                    }),
+                    user.radarActive == true
+                        ? _circleIcon(
+                            size: 90,
+                            Icons.power_settings_new,
+                            Colors.red,
+                            onTap: () {
+                              deactivateRadar();
+                            },
+                          )
+                        : _circleIcon(
+                            size: 90,
+                            Icons.emoji_emotions,
+                            Colors.green,
+                            onTap: () {
+                              showRadarIntroModal(context, (selectedMood) {
+                                activateRadar(selectedMood);
+                              });
+                            },
+                          ),
+                    _circleIcon(Icons.star, Colors.blue, onTap: () {
+                      // Otra futura acción
+                    }),
+                    _circleIcon(Icons.person, Colors.purple, onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => const EditProfilePage()),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      } else {
+        return Center(child: LinearProgressIndicator());
+      }
+    });
+  }
+
+  Map<String, String> getMoodData(String key) {
+    final moods = [
+      {'key': 'connect', 'emoji': '❤️', 'label': 'Conectar'},
+      {'key': 'chat', 'emoji': '💬', 'label': 'Charlar'},
+      {'key': 'support', 'emoji': '🫂', 'label': 'Necesito apoyo'},
+      {'key': 'celebrate', 'emoji': '🎉', 'label': 'Quiero celebrar'},
+      {'key': 'chill', 'emoji': '☕', 'label': 'Relajado'},
+    ];
+
+    return moods.firstWhere(
+      (m) => m['key'] == key,
+      orElse: () => {'emoji': '❓', 'label': 'Desconocido'},
+    );
+  }
+
+// 🔘 BOTÓN REDONDO DE ACCIÓN
+  Widget _circleIcon(IconData icon, Color color,
+      {required VoidCallback onTap, double size = 60}) {
+    final double iconSize = size > 60 ? size * 0.65 : size * 0.5;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: size,
+        width: size,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 6,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Icon(icon, color: color, size: iconSize),
+      ),
+    );
   }
 
   Widget drawerMenu() {
@@ -296,7 +492,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         child: SizedBox(
           height: MediaQuery.of(context).size.height / 2,
-          child: _mapsPage,
+          child: MapsPage(widgetKey: widget._mapKey),
         ),
       ),
     );

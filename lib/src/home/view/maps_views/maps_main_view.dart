@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'dart:ui';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
+
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluster/fluster.dart';
@@ -20,7 +20,9 @@ import '../../model/maps_marker_model.dart';
 import 'widgets/maps_helpers.dart';
 
 class MapsPage extends StatefulWidget {
-  const MapsPage({super.key});
+  final Key widgetKey;
+
+  const MapsPage({required this.widgetKey}) : super(key: widgetKey);
 
   @override
   State<MapsPage> createState() => _MapsPageState();
@@ -70,6 +72,7 @@ class _MapsPageState extends State<MapsPage> {
   }
 
   void _initFromState(UsersLoaded state) async {
+    print("✅ initFromState: inicializando marcadores...");
     if (_markersInitialized) return;
     _markersInitialized = true;
 
@@ -89,7 +92,7 @@ class _MapsPageState extends State<MapsPage> {
     if (mounted) {
       setState(() {
         _googleMap = GoogleMap(
-          key: UniqueKey(),
+          key: widget.widgetKey,
           mapToolbarEnabled: true,
           zoomControlsEnabled: true,
           initialCameraPosition: cameraPosition(),
@@ -157,7 +160,10 @@ class _MapsPageState extends State<MapsPage> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (mounted) {
+      _controller.dispose();
+      _mapController.future.then((c) => c.dispose()).catchError((_) {});
+    }
     super.dispose();
   }
 
@@ -247,11 +253,21 @@ class _MapsPageState extends State<MapsPage> {
 
         if (profilePhotoUrl != null && profilePhotoUrl.isNotEmpty) {
           // Crear marcador con foto y emoji
-          final markerIcon = await createUserPinWithMoodAndPhoto(
-            moodEmoji,
-            profilePhotoUrl,
-          );
-          markerImage = BitmapDescriptor.fromBytes(markerIcon);
+
+          try {
+            final markerIcon = await createUserPinWithMoodAndPhoto(
+              moodEmoji,
+              profilePhotoUrl,
+            );
+            markerImage = BitmapDescriptor.fromBytes(markerIcon);
+          } catch (e) {
+            print("⚠️ Error al crear marcador con foto: $e");
+            markerImage = await createUserPinWithMood(
+              gender: user.gender ?? 'otro',
+              emoji: moodEmoji,
+              baseIconAssetPath: _markerFemaleImageUrl,
+            );
+          }
         } else {
           // Si no tiene foto, usar el icono de género como antes
           final genderIcon = user.gender?.toLowerCase() == 'masculino'
@@ -557,7 +573,7 @@ class _MapsPageState extends State<MapsPage> {
     final emojiTextPainter = TextPainter(
       text: TextSpan(
         text: moodEmoji,
-        style: const TextStyle(fontSize: 60),
+        style: const TextStyle(fontSize: 100),
       ),
       textDirection: TextDirection.ltr,
     );
@@ -565,7 +581,7 @@ class _MapsPageState extends State<MapsPage> {
     emojiTextPainter.paint(canvas, const Offset(10, 10));
 
     // Dibujar círculo con imagen abajo
-    const double imageSize = 60;
+    const double imageSize = 120;
     const double imageX = (size - imageSize) / 2;
     const double imageY = size - imageSize - 10;
 

@@ -15,80 +15,97 @@ class FirestoreServiceUsers {
       return;
     }
 
+    // 🚀 Primer fetch forzado desde el servidor (sin caché)
+    final initialSnapshot = await usersCollection
+        /* .where(
+        'radarActive',
+        isEqualTo: true,
+      ) */
+        .get(const GetOptions(source: Source.server));
+
+    yield _parseUsers(initialSnapshot.docs, currentEmail);
+
+    // 🔁 Luego seguimos con el stream como siempre
     await for (var snapshot in usersCollection
         /* .where(
-          'radarActive',
-          isEqualTo: true,
-        ) */
+        'radarActive',
+        isEqualTo: true,
+      ) */
         .snapshots()) {
-      final users = <Users>[];
-
-      for (var doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final radarUntil = (data['radarUntil'] as Timestamp?)?.toDate();
-
-        /*  if (radarUntil != null && radarUntil.isBefore(now)) {
-          continue; // radar expirado
-        } */
-
-        users.add(Users(
-          email: data['email'],
-          lat: data['lat'],
-          long: data['long'],
-          name: data['name'],
-          lastName: data['lastName'],
-          age: data['age'],
-          birthDate: data['birthDate'],
-          gender: data['gender'],
-          bio: data['bio'],
-          isPremium: data['isPremium'],
-          profileImages: data['profileImages'],
-          visitedBy: data['visitedBy'],
-          radarActive: data['radarActive'],
-          radarMood: data['radarMood'],
-          radarActivatedAt: (data['radarActivatedAt'] as Timestamp?)?.toDate(),
-          radarDeactivatedAt:
-              (data['radarDeactivatedAt'] as Timestamp?)?.toDate(),
-          radarUntil: radarUntil,
-        ));
-      }
-
-      final alreadyIncluded = users.any((u) => u.email == currentEmail);
-
-      /* if (!alreadyIncluded) {
-        // Buscamos al usuario actual directamente
-        final doc = await usersCollection
-            .where('email', isEqualTo: currentEmail)
-            .limit(1)
-            .get();
-        if (doc.docs.isNotEmpty) {
-          final data = doc.docs.first.data() as Map<String, dynamic>;
-          users.add(Users(
-            email: data['email'],
-            lat: data['lat'],
-            long: data['long'],
-            name: data['name'],
-            lastName: data['lastName'],
-            age: data['age'],
-            birthDate: data['birthDate'],
-            gender: data['gender'],
-            bio: data['bio'],
-            isPremium: data['isPremium'],
-            profileImages: data['profileImages'],
-            visitedBy: data['visitedBy'],
-            radarActive: data['radarActive'],
-            radarMood: data['radarMood'],
-            radarActivatedAt:
-                (data['radarActivatedAt'] as Timestamp?)?.toDate(),
-            radarDeactivatedAt:
-                (data['radarDeactivatedAt'] as Timestamp?)?.toDate(),
-            radarUntil: (data['radarUntil'] as Timestamp?)?.toDate(),
-          ));
-        }
-      } */
-
-      yield users;
+      yield _parseUsers(snapshot.docs, currentEmail);
     }
+  }
+
+  List<Users> _parseUsers(
+      List<QueryDocumentSnapshot> docs, String currentEmail) {
+    final now = DateTime.now();
+    final users = <Users>[];
+
+    for (var doc in docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final radarUntil = (data['radarUntil'] as Timestamp?)?.toDate();
+
+      /* if (radarUntil != null && radarUntil.isBefore(now)) {
+      continue; // radar expirado
+    } */
+
+      users.add(Users(
+        email: data['email'],
+        lat: data['lat'],
+        long: data['long'],
+        name: data['name'],
+        lastName: data['lastName'],
+        age: data['age'],
+        birthDate: data['birthDate'],
+        gender: data['gender'],
+        bio: data['bio'],
+        isPremium: data['isPremium'],
+        profileImages: data['profileImages'],
+        visitedBy: data['visitedBy'],
+        radarActive: data['radarActive'],
+        radarMood: data['radarMood'],
+        radarActivatedAt: (data['radarActivatedAt'] as Timestamp?)?.toDate(),
+        radarDeactivatedAt:
+            (data['radarDeactivatedAt'] as Timestamp?)?.toDate(),
+        radarUntil: radarUntil,
+      ));
+    }
+
+    final alreadyIncluded = users.any((u) => u.email == currentEmail);
+
+    /* if (!alreadyIncluded) {
+    // Buscamos al usuario actual directamente
+    final doc = await usersCollection
+        .where('email', isEqualTo: currentEmail)
+        .limit(1)
+        .get();
+    if (doc.docs.isNotEmpty) {
+      final data = doc.docs.first.data() as Map<String, dynamic>;
+      users.add(Users(
+        email: data['email'],
+        lat: data['lat'],
+        long: data['long'],
+        name: data['name'],
+        lastName: data['lastName'],
+        age: data['age'],
+        birthDate: data['birthDate'],
+        gender: data['gender'],
+        bio: data['bio'],
+        isPremium: data['isPremium'],
+        profileImages: data['profileImages'],
+        visitedBy: data['visitedBy'],
+        radarActive: data['radarActive'],
+        radarMood: data['radarMood'],
+        radarActivatedAt:
+            (data['radarActivatedAt'] as Timestamp?)?.toDate(),
+        radarDeactivatedAt:
+            (data['radarDeactivatedAt'] as Timestamp?)?.toDate(),
+        radarUntil: (data['radarUntil'] as Timestamp?)?.toDate(),
+      ));
+    }
+  } */
+
+    return users;
   }
 
   Future<void> updatePosition(Users user) {
