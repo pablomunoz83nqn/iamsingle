@@ -61,10 +61,7 @@ class _MapsPageState extends State<MapsPage> {
   ];
 
   bool _markersInitialized = false;
-
-  GoogleMap _googleMap = GoogleMap(
-    initialCameraPosition: CameraPosition(target: LatLng(0.0, 0.0)),
-  );
+  final currentUserEmail = FirebaseAuth.instance.currentUser?.email;
 
   @override
   void initState() {
@@ -72,38 +69,61 @@ class _MapsPageState extends State<MapsPage> {
   }
 
   void _initFromState(UsersLoaded state) async {
-    print("✅ initFromState: inicializando marcadores...");
+    final currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+
+    final currentUserData = state.users.firstWhere(
+      (u) => u.email == currentUserEmail,
+      orElse: () => Users(), // o null si preferís
+    );
+
+    if (currentUserData.lat != null && currentUserData.long != null) {
+      myInfo.lat = currentUserData.lat;
+      myInfo.long = currentUserData.long;
+    }
+
     if (_markersInitialized) return;
+
     _markersInitialized = true;
 
-    myInfo = state.currentUser;
+    myInfo = state.users.firstWhere(
+      (u) => u.email == currentUser?.email,
+      orElse: () => Users(),
+    );
     originalUsersList = List.from(state.users);
-    markerLocations.clear();
 
+    markerLocations.clear();
     for (var u in originalUsersList) {
       if (u.lat != null && u.long != null) {
         markerLocations.add(LatLng(u.lat!, u.long!));
       }
     }
 
+    // ⬇️ MOSTRAR MAPA YA
+    setState(() {
+      _isMapLoading = false;
+    });
+
+    // ⬇️ SEGUIR CON LA CARGA DE MARCADORES EN SEGUNDO PLANO
     await _initMarkers();
     await updateMarkers();
 
     if (mounted) {
       setState(() {
-        _googleMap = GoogleMap(
-          key: widget.widgetKey,
-          mapToolbarEnabled: true,
-          zoomControlsEnabled: true,
-          initialCameraPosition: cameraPosition(),
-          markers: _markers,
-          onMapCreated: _onMapCreated,
-          onCameraMove: (position) => updateMarkers(position.zoom),
-        );
-        _isMapLoading = false;
         _areMarkersLoading = false;
       });
     }
+  }
+
+  GoogleMap _buildGoogleMap() {
+    return GoogleMap(
+      key: widget.widgetKey,
+      mapToolbarEnabled: true,
+      zoomControlsEnabled: true,
+      initialCameraPosition: cameraPosition(),
+      markers: _markers,
+      onMapCreated: _onMapCreated,
+      onCameraMove: (position) => updateMarkers(position.zoom),
+    );
   }
 
   @override
@@ -114,36 +134,51 @@ class _MapsPageState extends State<MapsPage> {
           return Center(
             child: Shimmer(
               child: Container(
-                color: Colors.deepPurple,
+                color: Colors.red,
                 child: const Center(
                     child: Text("Cargando...(al amor de tu vida)")),
               ),
             ),
           );
         } else if (state is UsersLoaded) {
-          _initFromState(state);
+          final currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+
+          final currentUserData = state.users.firstWhere(
+            (u) => u.email == currentUserEmail,
+            orElse: () => Users(),
+          );
+
+          if (currentUserData.lat != null && currentUserData.long != null) {
+            myInfo.lat = currentUserData.lat;
+            myInfo.long = currentUserData.long;
+          }
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _initFromState(state);
+          });
           return Stack(
             children: [
-              Opacity(opacity: _isMapLoading ? 0 : 1, child: _googleMap),
+              Opacity(opacity: _isMapLoading ? 0 : 1, child: _buildGoogleMap()),
               if (_isMapLoading)
                 Center(
                   child: Shimmer(
                     child: Container(
-                      color: Colors.deepPurple,
+                      color: Colors.green,
                     ),
                   ),
                 ),
               if (_areMarkersLoading)
                 Align(
-                  alignment: Alignment.topCenter,
-                  child: Card(
-                    color: Colors.grey.shade800,
-                    margin: const EdgeInsets.all(8),
-                    child: const Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      child: Text("Cargando marcadores",
-                          style: TextStyle(color: Colors.white)),
+                  alignment: Alignment.center,
+                  child: Center(
+                    child: Card(
+                      color: Colors.grey.shade800,
+                      margin: const EdgeInsets.all(8),
+                      child: const Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        child: Text("Cargando marcadores",
+                            style: TextStyle(color: Colors.white)),
+                      ),
                     ),
                   ),
                 ),
@@ -166,8 +201,6 @@ class _MapsPageState extends State<MapsPage> {
     }
     super.dispose();
   }
-
-  // Resto del código intacto: _onMapCreated, _initMarkers, updateMarkers, etc.
 
   Future<BitmapDescriptor> createUserPinWithMood({
     required String gender,
@@ -220,6 +253,8 @@ class _MapsPageState extends State<MapsPage> {
   }
 
   Future<void> _initMarkers() async {
+    final stopwatch = Stopwatch()..start();
+    print("⏳ Iniciando _initMarkers");
     final List<MapMarker> markers = [];
     // Por ahora dejamos todos los usuarios, sin filtrar por hora
     // final now = DateTime.now();
@@ -229,6 +264,7 @@ class _MapsPageState extends State<MapsPage> {
     // }).toList();
 
     for (final user in originalUsersList) {
+      final userStopwatch = Stopwatch()..start();
       if (user.lat == null || user.long == null) continue;
 
       final isCurrentUser = user.email == currentUser?.email;
@@ -290,14 +326,35 @@ class _MapsPageState extends State<MapsPage> {
           user: user,
         ),
       );
+      userStopwatch.stop();
+      print(
+          "⏱️ Marker para ${user.name ?? user.email}: ${userStopwatch.elapsedMilliseconds}ms");
     }
+    print("🧱 Total markers generados: ${markers.length}");
+    print(
+        "⏲️ Tiempo total generación de íconos: ${stopwatch.elapsedMilliseconds}ms");
 
+    final clusterStart = Stopwatch()..start();
     _clusterManager = await MapHelper.initClusterManager(
       markers,
       _minClusterZoom,
       _maxClusterZoom,
     );
+    clusterStart.stop();
+    print(
+        "🔄 Tiempo para crear clusterManager: ${clusterStart.elapsedMilliseconds}ms");
 
+    if (_clusterManager != null) {
+      final updateStart = Stopwatch()..start();
+      await updateMarkers();
+      updateStart.stop();
+      print("✅ updateMarkers() tomó: ${updateStart.elapsedMilliseconds}ms");
+    } else {
+      print("❌ clusterManager sigue siendo null");
+    }
+
+    stopwatch.stop();
+    print("🏁 _initMarkers finalizado en ${stopwatch.elapsedMilliseconds}ms");
     await updateMarkers();
   }
 
@@ -306,63 +363,81 @@ class _MapsPageState extends State<MapsPage> {
   }
 
   Future<void> updateMarkers([double? updatedZoom]) async {
-    if (_clusterManager == null) return;
+    print("🌀 updateMarkers llamado con zoom: $updatedZoom");
+
+    if (_clusterManager == null) {
+      print("❌ clusterManager es null");
+      return;
+    }
 
     if (updatedZoom != null) _currentZoom = updatedZoom;
 
     if (!mounted) return;
-    setState(() {
-      _areMarkersLoading = true;
-    });
 
-    final clusterItems = _clusterManager!.clusters(
-      [-180, -85, 180, 85],
-      _currentZoom.toInt(),
-    );
+    setState(() => _areMarkersLoading = true);
 
-    final updatedMarkers = await Future.wait(clusterItems.map((item) async {
-      if (item.isCluster ?? false) {
-        return Marker(
-          markerId: MarkerId(item.id),
-          position: item.position,
-          icon: await MapHelper.getClusterIcon(
+    try {
+      final clusterItems = _clusterManager!.clusters(
+        [-180, -85, 180, 85],
+        _currentZoom.toInt(),
+      );
+
+      print("🧩 ClusterItems: ${clusterItems.length}");
+
+      final List<Marker> updatedMarkers = [];
+
+      for (final item in clusterItems) {
+        final isCluster = item.isCluster;
+
+        if (isCluster) {
+          final clusterIcon = await MapHelper.getClusterIcon(
             item.pointsSize ?? 2,
             _clusterColor,
             _clusterTextColor,
             80,
-          ),
-          onTap: () {
-            _mapController.future.then((controller) {
-              controller.animateCamera(
-                CameraUpdate.newLatLngZoom(item.position, _currentZoom + 2),
-              );
-            });
-          },
-        );
-      } else {
-        final mapMarker = item;
-        return Marker(
-          markerId: MarkerId(mapMarker.id),
-          position: mapMarker.position,
-          icon: mapMarker.icon,
-          onTap: () {
-            if (mapMarker.user != null) {
-              setState(() {
-                _selectedUser = mapMarker.user;
-              });
-              _showUserDetails(mapMarker.user!);
-            }
-          },
-        );
-      }
-    }).toList());
+          );
 
-    setState(() {
-      _markers
-        ..clear()
-        ..addAll(updatedMarkers);
-      _areMarkersLoading = false;
-    });
+          updatedMarkers.add(
+            Marker(
+              markerId: MarkerId(item.id),
+              position: item.position,
+              icon: clusterIcon,
+              onTap: () {
+                _mapController.future.then((controller) {
+                  controller.animateCamera(
+                    CameraUpdate.newLatLngZoom(item.position, _currentZoom + 2),
+                  );
+                });
+              },
+            ),
+          );
+        } else {
+          final marker = Marker(
+            markerId: MarkerId(item.id),
+            position: item.position,
+            icon: item.icon,
+            onTap: () {
+              if (item.user != null) {
+                setState(() => _selectedUser = item.user);
+                _showUserDetails(item.user!);
+              }
+            },
+          );
+
+          updatedMarkers.add(marker);
+        }
+      }
+      print("✅ Marcadores actualizados: ${updatedMarkers.length}");
+      setState(() {
+        _markers
+          ..clear()
+          ..addAll(updatedMarkers);
+        _areMarkersLoading = false;
+      });
+    } catch (e) {
+      print("❌ Error actualizando marcadores: $e");
+      setState(() => _areMarkersLoading = false);
+    }
   }
 
   void _showUserDetails(Users user) {
@@ -668,9 +743,17 @@ class _MapsPageState extends State<MapsPage> {
   }
 
   CameraPosition cameraPosition() {
-    print("MyInfo: ${myInfo.lat}, ${myInfo.long}");
+    final currentLat = myInfo.lat;
+    final currentLong = myInfo.long;
+
+    final isValid = currentLat != null && currentLong != null;
+
+    if (!isValid) {
+      print("⚠️ Lat/Lng no disponibles aún. Usando (0,0) como fallback");
+    }
+
     return CameraPosition(
-      target: LatLng(myInfo.lat!, myInfo.long!),
+      target: isValid ? LatLng(currentLat!, currentLong!) : const LatLng(0, 0),
       zoom: _currentZoom,
     );
   }
