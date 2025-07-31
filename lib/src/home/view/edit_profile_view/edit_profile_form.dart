@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_reorderable_grid_view/widgets/reorderable_builder.dart';
 import 'dart:io';
 import 'package:loveradar/src/home/model/users_model.dart';
+import 'package:loveradar/src/home/view/edit_profile_view/edit_profile_controller.dart';
 
 class EditProfileForm extends StatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -15,6 +16,7 @@ class EditProfileForm extends StatefulWidget {
   final List<String> pendingDeletes;
   final bool isSaving;
   final VoidCallback onPickImages;
+  final VoidCallback? onChangeDetected;
 
   final void Function(List<ImageDataProfile> orderedImages) onSave;
   final Function(String?) onGenderChanged;
@@ -38,6 +40,7 @@ class EditProfileForm extends StatefulWidget {
     required this.onGenderChanged,
     required this.onRemoveLocalImage,
     required this.onRemoveOnlineImage,
+    required this.onChangeDetected,
   });
 
   @override
@@ -48,7 +51,7 @@ class _EditProfileFormState extends State<EditProfileForm> {
   final _scrollController = ScrollController();
   final _gridViewKey = GlobalKey();
 
-  var generatedList = [];
+  List<ImageDataProfile> generatedList = [];
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +85,7 @@ class _EditProfileFormState extends State<EditProfileForm> {
     if (generatedList.isEmpty || generatedList.length != allImages.length) {
       generatedList = allImages;
     }
-
+    GeneratedListController().generatedList = generatedList;
     final generatedChildren = List.generate(
       generatedList.length,
       (index) {
@@ -128,60 +131,42 @@ class _EditProfileFormState extends State<EditProfileForm> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Tus fotos",
+              "Tus fotos (${generatedList.length}/9)",
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
             SizedBox(
-              height: 400,
-              width: 400,
               child: ReorderableBuilder(
-                scrollController: _scrollController,
+                //scrollController: _scrollController,
                 onReorder: (ReorderedListFunction reorderedListFunction) {
                   setState(() {
                     generatedList = reorderedListFunction(generatedList)
                         as List<ImageDataProfile>;
+                    if (widget.onChangeDetected != null) {
+                      widget.onChangeDetected!();
+                    }
                   });
                 },
                 builder: (children) {
-                  return GridView(
+                  return GridView.count(
                     key: _gridViewKey,
-                    controller: _scrollController,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      mainAxisSpacing: 4,
-                      crossAxisSpacing: 8,
-                    ),
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 3,
+                    crossAxisSpacing: 8,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     children: children,
                   );
                 },
                 children: generatedChildren,
               ),
             ),
-            /* GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: allImages.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-              ),
-              itemBuilder: (context, index) {
-                final img = allImages[index];
-                return _imagePreview(
-                  context,
-                  image: img.widget,
-                  label: img.label,
-                  onDelete: img.onDelete,
-                );
-              },
-            ), */
-            const SizedBox(height: 10),
             TextButton.icon(
               onPressed: widget.onPickImages,
-              icon: const Icon(Icons.add_a_photo_outlined),
+              icon: const Icon(
+                Icons.add_a_photo_outlined,
+                size: 40,
+              ),
               label: const Text("Agregar o reemplazar fotos"),
             ),
             const SizedBox(height: 24),
@@ -236,6 +221,14 @@ class _EditProfileFormState extends State<EditProfileForm> {
   Widget _styledInput(TextEditingController ctrl, String label,
       {TextInputType keyboardType = TextInputType.text, int maxLines = 1}) {
     return TextFormField(
+      onChanged: (value) {
+        setState(() {
+          // ...
+        });
+        if (widget.onChangeDetected != null) {
+          widget.onChangeDetected!();
+        }
+      },
       controller: ctrl,
       maxLines: maxLines,
       keyboardType: keyboardType,

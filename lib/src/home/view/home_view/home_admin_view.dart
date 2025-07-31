@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -360,8 +361,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _circleIcon(Icons.replay, Colors.orange, onTap: () {
-                      // Función futura
+                    _circleIcon(Icons.copy, Colors.orange, onTap: () {
+                      duplicarUsuariosDePrueba(cantidad: 10);
                     }),
                     _circleIcon(Icons.clear, Colors.red, onTap: () {
                       signOut(); // O comentá esta línea si no querés logout acá
@@ -445,6 +446,42 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Icon(icon, color: color, size: iconSize),
       ),
     );
+  }
+
+  Future<void> duplicarUsuariosDePrueba({required int cantidad}) async {
+    final usersCollection = FirebaseFirestore.instance.collection('users');
+
+    // Tomamos el primer usuario como base
+    final querySnapshot = await usersCollection.limit(1).get();
+
+    if (querySnapshot.docs.isEmpty) {
+      print('❌ No hay usuarios para duplicar.');
+      return;
+    }
+
+    final baseDoc = querySnapshot.docs.first;
+    final baseData = Map<String, dynamic>.from(baseDoc.data());
+
+    for (int i = 1; i <= cantidad; i++) {
+      // Modificaciones
+      final nuevoEmail = 'test$i@test.com';
+      final nuevaLat = (baseData['lat'] ?? 0) + (i * 0.001);
+      final nuevaLong = (baseData['long'] ?? 0) + (i * 0.001);
+      final nuevoNombre = 'nombre$i@test.com';
+
+      final nuevoData = Map<String, dynamic>.from(baseData)
+        ..['email'] = nuevoEmail
+        ..['lat'] = nuevaLat
+        ..['long'] = nuevaLong
+        ..['name'] = nuevoNombre;
+
+      // Guardamos el nuevo documento
+      await usersCollection.doc(nuevoEmail).set(nuevoData);
+      print(
+          '✅ Usuario $nuevoEmail creado con lat $nuevaLat y nueva long $long');
+    }
+
+    print('🎉 $cantidad usuarios duplicados exitosamente.');
   }
 
   Widget drawerMenu() {

@@ -565,30 +565,20 @@ class _MapsPageState extends State<MapsPage> {
     const double size = 150;
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-
-    // Fondo transparente
     final paint = Paint();
 
-    // Dibujar emoji centrado
-    final emojiTextPainter = TextPainter(
-      text: TextSpan(
-        text: moodEmoji,
-        style: const TextStyle(fontSize: 100),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-    emojiTextPainter.layout();
-    emojiTextPainter.paint(canvas, const Offset(10, 10));
-
-    // Dibujar círculo con imagen abajo
+    // --- Imagen de perfil circular ---
     const double imageSize = 120;
     const double imageX = (size - imageSize) / 2;
     const double imageY = size - imageSize - 10;
 
     try {
       final imageBytes = await _loadNetworkImage(imageUrl);
-      final codec = await ui.instantiateImageCodec(imageBytes,
-          targetWidth: imageSize.toInt(), targetHeight: imageSize.toInt());
+      final codec = await ui.instantiateImageCodec(
+        imageBytes,
+        targetWidth: imageSize.toInt(),
+        targetHeight: imageSize.toInt(),
+      );
       final frame = await codec.getNextFrame();
 
       final clipPath = Path()
@@ -598,7 +588,6 @@ class _MapsPageState extends State<MapsPage> {
       canvas.drawImage(frame.image, Offset(imageX, imageY), paint);
       canvas.restore();
     } catch (e) {
-      // Si falla, dibuja un círculo gris con ícono de usuario
       canvas.drawCircle(
         Offset(size / 2, imageY + imageSize / 2),
         imageSize / 2,
@@ -619,6 +608,22 @@ class _MapsPageState extends State<MapsPage> {
       );
     }
 
+    // --- Emoji encima a la izquierda de la imagen ---
+    final emojiTextPainter = TextPainter(
+      text: TextSpan(
+        text: moodEmoji,
+        style: const TextStyle(fontSize: 60), // Ajustá tamaño si querés
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    emojiTextPainter.layout();
+
+    final double emojiX = imageX - 5;
+    final double emojiY = imageY - 15;
+
+    emojiTextPainter.paint(canvas, Offset(emojiX, emojiY));
+
+    // Finalizar
     final picture = recorder.endRecording();
     final image = await picture.toImage(size.toInt(), size.toInt());
     final pngBytes = await image.toByteData(format: ui.ImageByteFormat.png);

@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:loveradar/src/home/view/edit_profile_view/edit_profile_controller.dart';
 import 'package:loveradar/src/home/view/edit_profile_view/edit_profile_form.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
@@ -36,10 +37,33 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   bool _isSaving = false;
 
+  bool _hasChanges = false;
+  late GeneratedListController editController;
+
   @override
   void initState() {
+    editController = GeneratedListController();
+    _nameCtrl.addListener(_markChanges);
+    _lastNameCtrl.addListener(_markChanges);
+    _ageCtrl.addListener(_markChanges);
+    _bioCtrl.addListener(_markChanges);
     super.initState();
     _loadCurrentUser();
+  }
+
+  @override
+  void dispose() {
+    editController.dispose();
+    super.dispose();
+  }
+
+  void _markChanges() {
+    if (!_hasChanges) {
+      setState(() {
+        _hasChanges = true;
+        editController.hasChanged = true;
+      });
+    }
   }
 
   Future<void> _loadCurrentUser() async {
@@ -107,8 +131,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (picked.isNotEmpty) {
       setState(() {
         _imageFiles.addAll(picked.map((file) => File(file.path)));
+        _markChanges();
       });
     }
+    _markChanges();
   }
 
   void _saveProfileFromOrder(List<ImageDataProfile> orderedImages) async {
@@ -197,7 +223,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
           );
         }
         return Scaffold(
-          appBar: AppBar(title: const Text('Editar Perfil')),
+          appBar: AppBar(
+            title: const Text('Editar Perfil'),
+            actions: _hasChanges
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.save),
+                      onPressed: _isSaving
+                          ? null
+                          : () => _saveProfileFromOrder(
+                                editController.generatedList,
+                              ),
+                    )
+                  ]
+                : [],
+          ),
           body: EditProfileForm(
             formKey: _formKey,
             nameCtrl: _nameCtrl,
@@ -211,12 +251,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
             isSaving: _isSaving,
             onPickImages: _pickImages,
             onSave: _saveProfileFromOrder,
-            onGenderChanged: (value) => setState(() => _gender = value),
-            onRemoveLocalImage: (index) =>
-                setState(() => _imageFiles.removeAt(index)),
+            onChangeDetected: () {
+              if (!_hasChanges) {
+                setState(() {
+                  _hasChanges = true;
+                  GeneratedListController().hasChanged = _hasChanges;
+                });
+              }
+            },
+            onGenderChanged: (value) => setState(() {
+              _gender = value;
+              _markChanges();
+            }),
+            onRemoveLocalImage: (index) => setState(() {
+              _imageFiles.removeAt(index);
+              _markChanges();
+            }),
             onRemoveOnlineImage: (index, url) => setState(() {
               _pendingDeletes.add(url);
               _currentUser?.profileImages?.removeAt(index);
+              _markChanges();
             }),
           ),
         );
